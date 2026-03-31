@@ -50,9 +50,9 @@ model Bet {
   userId String
   status BetStatus @default(PENDING)
 
-  amount    Int
-  cashoutAt Decimal @db.Decimal(10, 2)
-  payout    BigInt?
+  amount            Int
+  cashoutMultiplier Decimal? @db.Decimal(10, 2)
+  payout            BigInt?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
