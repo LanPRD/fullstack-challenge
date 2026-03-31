@@ -1,14 +1,15 @@
 import type { BetStatus } from "../enums";
 import type { Optional } from "../types";
+import type { Money } from "../value-objects";
 import { Entity } from "./entity";
 import type { UniqueEntityId } from "./unique-entity-id";
 
 export interface BetProps {
   userId: UniqueEntityId;
   status: BetStatus;
-  amount: number;
+  amount: Money;
   cashoutMultiplier: number | null;
-  payout: bigint | null;
+  payout: Money | null;
   createdAt: Date;
   updatedAt: Date;
   roundId: UniqueEntityId;
