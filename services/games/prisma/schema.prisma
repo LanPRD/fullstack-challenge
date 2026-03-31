@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/infrastructure/database/prisma/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RoundStatus {
+  BETTING
+  RUNNING
+  CRASHED
+}
+
+enum BetStatus {
+  PENDING
+  CASHED_OUT
+  LOST
+}
+
+model Round {
+  id     String      @id @default(uuid())
+  status RoundStatus @default(BETTING)
+
+  serverSeed     String
+  serverSeedHash String
+
+  crashPoint Decimal   @db.Decimal(10, 2)
+  startedAt  DateTime  @default(now())
+  endedAt    DateTime?
+  crashedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bets Bet[]
+
+  @@index([createdAt])
+  @@index([status])
+}
+
+model Bet {
+  id     String    @id @default(uuid())
+  userId String
+  status BetStatus @default(PENDING)
+
+  amount    Int
+  cashoutAt Decimal @db.Decimal(10, 2)
+  payout    BigInt?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roundId String
+  Round   Round  @relation(fields: [roundId], references: [id])
+
+  @@unique([roundId, userId])
+  @@index([userId])
+  @@index([roundId])
+}
