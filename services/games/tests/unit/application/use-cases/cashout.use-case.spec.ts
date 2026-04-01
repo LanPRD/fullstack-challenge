@@ -5,16 +5,19 @@ import {
 } from "@/application/errors";
 import { CashoutUseCase } from "@/application/use-cases/round/cashout.use-case";
 import { Money, Round, UniqueEntityId } from "@/domain";
-import { beforeEach, describe, expect, it, spyOn } from "bun:test";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import { InMemoryRoundRepository } from "../../../repositories";
 
 describe("CashoutUseCase", () => {
   let sut: CashoutUseCase;
   let roundRepository: InMemoryRoundRepository;
+  let eventEmitter: EventEmitter2;
 
   beforeEach(() => {
     roundRepository = new InMemoryRoundRepository();
-    sut = new CashoutUseCase(roundRepository);
+    eventEmitter = { emit: mock(() => true) } as unknown as EventEmitter2;
+    sut = new CashoutUseCase(roundRepository, eventEmitter);
   });
 
   function createRunningRoundWithBet(userId: UniqueEntityId, amount: bigint) {

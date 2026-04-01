@@ -5,16 +5,19 @@ import {
 } from "@/application/errors";
 import { PlaceBetUseCase } from "@/application/use-cases/round/place-bet.use-case";
 import { BET_LIMITS, Money, Round, UniqueEntityId } from "@/domain";
-import { beforeEach, describe, expect, it, spyOn } from "bun:test";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import { InMemoryRoundRepository } from "../../../repositories";
 
 describe("PlaceBetUseCase", () => {
   let sut: PlaceBetUseCase;
   let roundRepository: InMemoryRoundRepository;
+  let eventEmitter: EventEmitter2;
 
   beforeEach(() => {
     roundRepository = new InMemoryRoundRepository();
-    sut = new PlaceBetUseCase(roundRepository);
+    eventEmitter = { emit: mock(() => true) } as unknown as EventEmitter2;
+    sut = new PlaceBetUseCase(roundRepository, eventEmitter);
   });
 
   function createActiveRound(): Round {
