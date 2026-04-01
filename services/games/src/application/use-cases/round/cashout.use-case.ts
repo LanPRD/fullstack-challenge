@@ -12,6 +12,7 @@ import {
   type RoundRepository
 } from "@/domain";
 import { Injectable, Logger } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 interface CashoutInput {
   betId: string;
@@ -27,7 +28,10 @@ type CashoutOutput = Either<
 export class CashoutUseCase {
   private readonly _logger = new Logger(CashoutUseCase.name);
 
-  constructor(private readonly roundRepository: RoundRepository) {}
+  constructor(
+    private readonly roundRepository: RoundRepository,
+    private readonly eventEmitter: EventEmitter2
+  ) {}
 
   async execute({ betId, multiplier }: CashoutInput): Promise<CashoutOutput> {
     const round = await this.roundRepository.findCurrent();
@@ -50,7 +54,18 @@ export class CashoutUseCase {
 
     try {
       await this.roundRepository.save(round);
-      return right(cashoutResult.value);
+
+      const bet = cashoutResult.value;
+
+      this.eventEmitter.emit("bet:cashedout", {
+        roundId: round.id.toString(),
+        betId: bet.id.toString(),
+        userId: bet.userId.toString(),
+        multiplier: bet.cashoutMultiplier,
+        payout: bet.payout?.toCents().toString()
+      });
+
+      return right(bet);
     } catch (error) {
       this._logger.error(`Error processing cashout: ${error}`);
       return left(

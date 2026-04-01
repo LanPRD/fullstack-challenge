@@ -14,6 +14,7 @@ import {
   type RoundRepository
 } from "@/domain";
 import { Injectable, Logger } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 interface PlaceBetInput {
   userId: string;
@@ -29,7 +30,10 @@ type PlaceBetOutput = Either<
 export class PlaceBetUseCase {
   private readonly _logger = new Logger(PlaceBetUseCase.name);
 
-  constructor(private readonly roundRepository: RoundRepository) {}
+  constructor(
+    private readonly roundRepository: RoundRepository,
+    private readonly eventEmitter: EventEmitter2
+  ) {}
 
   async execute({ userId, amount }: PlaceBetInput): Promise<PlaceBetOutput> {
     const amountInCents = BigInt(amount);
@@ -70,7 +74,17 @@ export class PlaceBetUseCase {
 
     try {
       await this.roundRepository.save(round);
-      return right(betResult.value);
+
+      const bet = betResult.value;
+
+      this.eventEmitter.emit("bet:placed", {
+        roundId: round.id.toString(),
+        betId: bet.id.toString(),
+        userId: bet.userId.toString(),
+        amount: bet.amount.toCents().toString()
+      });
+
+      return right(bet);
     } catch (error) {
       this._logger.error(`Error placing bet: ${error}`);
       return left(new InternalException({ message: "Error placing bet" }));
