@@ -72,6 +72,10 @@ export class Bet extends Entity<BetProps> {
     return this.props.status === BetStatus.LOST;
   }
 
+  get createdAt(): Date {
+    return this.props.createdAt;
+  }
+
   applyCashout(multiplier: number): void {
     this.cashoutMultiplier = multiplier;
     this.payout = this.amount.multiply(multiplier);
