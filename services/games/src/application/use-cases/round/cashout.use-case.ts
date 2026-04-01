@@ -1,0 +1,61 @@
+import {
+  BadRequestException,
+  InternalException,
+  NotFoundException
+} from "@/application/errors";
+import {
+  Bet,
+  left,
+  right,
+  UniqueEntityId,
+  type Either,
+  type RoundRepository
+} from "@/domain";
+import { Injectable, Logger } from "@nestjs/common";
+
+interface CashoutInput {
+  betId: string;
+  multiplier: number;
+}
+
+type CashoutOutput = Either<
+  BadRequestException | NotFoundException | InternalException,
+  Bet
+>;
+
+@Injectable()
+export class CashoutUseCase {
+  private readonly _logger = new Logger(CashoutUseCase.name);
+
+  constructor(private readonly roundRepository: RoundRepository) {}
+
+  async execute({ betId, multiplier }: CashoutInput): Promise<CashoutOutput> {
+    const round = await this.roundRepository.findCurrent();
+
+    if (!round) {
+      return left(new NotFoundException({ message: "No active round" }));
+    }
+
+    const cashoutResult = round.cashout(new UniqueEntityId(betId), multiplier);
+
+    if (cashoutResult.isLeft()) {
+      const error = cashoutResult.value;
+
+      if (error.name === "BetNotFoundError") {
+        return left(new NotFoundException({ message: "Bet not found" }));
+      }
+
+      return left(new BadRequestException({ message: error.message }));
+    }
+
+    try {
+      await this.roundRepository.save(round);
+      return right(cashoutResult.value);
+    } catch (error) {
+      this._logger.error(`Error processing cashout: ${error}`);
+      return left(
+        new InternalException({ message: "Error processing cashout" })
+      );
+    }
+  }
+}
