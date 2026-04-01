@@ -1,4 +1,4 @@
-import { RepositoriesModule } from "@/infrastructure/database";
+import { DatabaseModule } from "@/infrastructure/database/database.module";
 import { Module } from "@nestjs/common";
 import {
   CashoutUseCase,
@@ -17,7 +17,7 @@ const useCases = [
 ];
 
 @Module({
-  imports: [RepositoriesModule],
+  imports: [DatabaseModule],
   providers: useCases,
   exports: useCases
 })
