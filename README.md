@@ -1,15 +1,5 @@
 # Desafio Full-stack - Crash Game 🎮
 
-## Bem-vindo à Jungle Gaming 🦧
-
-A **Jungle Gaming** é uma software house especializada em iGaming — desenvolvemos plataformas de cassino online com tecnologia de ponta: NestJS, Bun, TanStack, DDD e arquitetura orientada a eventos. Somos apaixonados por engenharia de software e acreditamos que grandes produtos nascem de grandes times.
-
-Este desafio é a porta de entrada para fazer parte desse time. Ele foi desenhado para refletir problemas reais do nosso dia a dia: sistemas distribuídos, tempo real, precisão monetária, experiência de usuário e arquitetura bem pensada.
-
-Não esperamos perfeição — esperamos raciocínio claro, código limpo e decisões justificadas. Mostre como você pensa e como você constrói.
-
----
-
 ## Visão Geral 📖
 
 Um **Crash Game** é um jogo de cassino multiplayer em tempo real: um multiplicador sobe a partir de `1.00x` e pode "crashar" a qualquer momento. Jogadores apostam antes da rodada e precisam sacar (cash out) antes do crash para garantir os ganhos — caso contrário, perdem a aposta.
@@ -39,27 +29,27 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 
 ## Arquitetura 🏗️
 
-```
-                        ┌──────────────────────────┐
+```text
+                        ┌───────────────────────────┐
                         │        Frontend           │
                         │   (React + Tailwind CSS)  │
                         └─────┬────────────┬────────┘
                            HTTP/REST    WebSocket
                               │            │
-                        ┌─────▼────────────▼────────┐
+                        ┌─────▼────────────▼─────────┐
                         │         Kong               │
                         │      (API Gateway)         │
-                        └─────┬────────────┬────────┘
+                        └─────┬────────────┬─────────┘
                               │            │
                     ┌─────────▼──┐   ┌─────▼────────┐
                     │   Game     │   │   Wallet     │
                     │  Service   │   │   Service    │
                     │  (NestJS)  │   │   (NestJS)   │
-                    └──┬─────┬──┘   └──────┬───────┘
-                       │     └──────┬──────┘
-                  ┌────▼────┐  ┌────▼──────────┐
+                    └──┬──────┬──┘   └──────┬───────┘
+                       │      └──────┬──────┘
+                  ┌────▼─────┐  ┌────▼──────────┐
                   │PostgreSQL│  │ RabbitMQ/SQS  │
-                  └─────────┘  └───────────────┘
+                  └──────────┘  └───────────────┘
 
               ┌─────────────────┐
               │    Keycloak     │
@@ -284,7 +274,7 @@ bun run docker:prune   # Remove tudo (containers, volumes, imagens)
 
 > Estrutura sugerida — pode adaptar, desde que mantenha a separação de camadas DDD (domain → application → infrastructure → presentation).
 
-```
+```text
 fullstack-challenge/
 ├── services/
 │   ├── games/
