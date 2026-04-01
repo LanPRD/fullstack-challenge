@@ -1,5 +1,6 @@
 import { Bet, BetStatus, Money, UniqueEntityId } from "@/domain";
 import type {
+  Prisma,
   Bet as PrismaBet,
   BetStatus as PrismaBetStatus
 } from "../prisma/generated/client";
@@ -36,14 +37,14 @@ export class PrismaBetMapper {
     );
   }
 
-  static toPrisma(bet: Bet): Omit<PrismaBet, "Round"> {
+  static toPrisma(bet: Bet): Prisma.BetUncheckedCreateInput {
     return {
       id: bet.id.toString(),
       userId: bet.userId.toString(),
       roundId: bet.roundId.toString(),
       status: bet.status as PrismaBetStatus,
       amount: Number(bet.amount.toCents()),
-      cashoutMultiplier: bet.cashoutMultiplier ? bet.cashoutMultiplier : null,
+      cashoutMultiplier: bet.cashoutMultiplier ?? null,
       payout: bet.payout ? bet.payout.toCents() : null,
       createdAt: bet.createdAt,
       updatedAt: new Date()

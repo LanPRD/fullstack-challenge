@@ -1,5 +1,6 @@
 import { ProvablyFair, Round, RoundStatus, UniqueEntityId } from "@/domain";
 import type {
+  Prisma,
   Bet as PrismaBet,
   Round as PrismaRound,
   RoundStatus as PrismaRoundStatus
@@ -38,7 +39,7 @@ export class PrismaRoundMapper {
     return round;
   }
 
-  static toPrisma(round: Round): Omit<PrismaRound, "bets"> {
+  static toPrisma(round: Round): Prisma.RoundUncheckedCreateInput {
     return {
       id: round.id.toString(),
       status: round.status as PrismaRoundStatus,
