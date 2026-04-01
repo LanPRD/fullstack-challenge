@@ -1,3 +1,5 @@
+import { createHash, randomBytes } from "node:crypto";
+
 export class ProvablyFair {
   private readonly _serverSeed: string;
   private readonly _serverSeedHash: string;
@@ -14,7 +16,13 @@ export class ProvablyFair {
   }
 
   static generate(): ProvablyFair {
-    throw new Error("Not implemented");
+    const serverSeed = randomBytes(32).toString("hex");
+    const serverSeedHash = createHash("sha256")
+      .update(serverSeed)
+      .digest("hex");
+    const crashPoint = this.calculateCrashPoint(serverSeed);
+
+    return new ProvablyFair(serverSeed, serverSeedHash, crashPoint);
   }
 
   static fromExisting(
@@ -25,12 +33,26 @@ export class ProvablyFair {
     return new ProvablyFair(serverSeed, serverSeedHash, crashPoint);
   }
 
-  static verify(_serverSeed: string, _expectedHash: string): boolean {
-    throw new Error("Not implemented");
+  static verify(serverSeed: string, expectedHash: string): boolean {
+    const calculatedHash = createHash("sha256")
+      .update(serverSeed)
+      .digest("hex");
+    return calculatedHash === expectedHash;
   }
 
-  static calculateCrashPoint(_serverSeed: string): number {
-    throw new Error("Not implemented");
+  static calculateCrashPoint(serverSeed: string): number {
+    const hash = createHash("sha256").update(serverSeed).digest("hex");
+    const resultNumber = parseInt(hash.substring(0, 13), 16);
+    const maxValue = 2 ** 52;
+
+    // 3% house edge (crash instantâneo)
+    if (resultNumber % 33 === 0) {
+      return 1.0;
+    }
+
+    // Fórmula do multiplicador
+    const result = (100 * maxValue - resultNumber) / (maxValue - resultNumber);
+    return Math.floor(result) / 100;
   }
 
   get serverSeed(): string {
