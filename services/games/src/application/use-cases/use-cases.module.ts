@@ -4,8 +4,12 @@ import {
   CashoutUseCase,
   CrashRoundUseCase,
   CreateRoundUseCase,
+  GetCurrentRoundUseCase,
+  GetPlayerBetsHistoryUseCase,
+  GetRoundsHistoryUseCase,
   PlaceBetUseCase,
-  StartRoundUseCase
+  StartRoundUseCase,
+  VerifyRoundUseCase
 } from "./round";
 
 const useCases = [
@@ -13,7 +17,11 @@ const useCases = [
   StartRoundUseCase,
   CrashRoundUseCase,
   PlaceBetUseCase,
-  CashoutUseCase
+  CashoutUseCase,
+  GetCurrentRoundUseCase,
+  GetRoundsHistoryUseCase,
+  VerifyRoundUseCase,
+  GetPlayerBetsHistoryUseCase
 ];
 
 @Module({
