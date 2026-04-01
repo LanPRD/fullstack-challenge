@@ -1,4 +1,10 @@
-import { Round, RoundRepository, UniqueEntityId } from "@/domain";
+import {
+  Round,
+  RoundRepository,
+  UniqueEntityId,
+  type PaginatedResult,
+  type PaginationOptions
+} from "@/domain";
 
 export class InMemoryRoundRepository implements RoundRepository {
   private rounds: Round[] = [];
@@ -9,6 +15,20 @@ export class InMemoryRoundRepository implements RoundRepository {
 
   async findCurrent(): Promise<Round | null> {
     return this.rounds.find(r => r.isBetting || r.isRunning) ?? null;
+  }
+
+  async findMany(options: PaginationOptions): Promise<PaginatedResult<Round>> {
+    const { limit, offset } = options;
+    const crashedRounds = this.rounds
+      .filter(r => r.isCrashed)
+      .sort((a, b) => b.crashedAt!.getTime() - a.crashedAt!.getTime());
+
+    return {
+      data: crashedRounds.slice(offset, offset + limit),
+      total: crashedRounds.length,
+      limit,
+      offset
+    };
   }
 
   async save(round: Round): Promise<void> {

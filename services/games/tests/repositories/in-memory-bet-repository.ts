@@ -1,4 +1,10 @@
-import { Bet, BetRepository, UniqueEntityId } from "@/domain";
+import {
+  Bet,
+  BetRepository,
+  UniqueEntityId,
+  type PaginatedResult,
+  type PaginationOptions
+} from "@/domain";
 
 export class InMemoryBetRepository implements BetRepository {
   private bets: Bet[] = [];
@@ -11,8 +17,21 @@ export class InMemoryBetRepository implements BetRepository {
     return this.bets.filter(b => b.roundId.toString() === roundId.toString());
   }
 
-  async findByUserId(userId: UniqueEntityId): Promise<Bet[]> {
-    return this.bets.filter(b => b.userId.toString() === userId.toString());
+  async findByUserId(
+    userId: UniqueEntityId,
+    options: PaginationOptions
+  ): Promise<PaginatedResult<Bet>> {
+    const { limit, offset } = options;
+    const userBets = this.bets
+      .filter(b => b.userId.toString() === userId.toString())
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    return {
+      data: userBets.slice(offset, offset + limit),
+      total: userBets.length,
+      limit,
+      offset
+    };
   }
 
   async save(bet: Bet): Promise<void> {
