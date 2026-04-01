@@ -26,4 +26,12 @@ export class InMemoryRoundRepository implements RoundRepository {
   clear(): void {
     this.rounds = [];
   }
+
+  getRounds(): Round[] {
+    return this.rounds;
+  }
+
+  addRound(round: Round): void {
+    this.rounds.push(round);
+  }
 }
