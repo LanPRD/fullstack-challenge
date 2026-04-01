@@ -129,7 +129,6 @@ export class Round extends Entity<RoundProps> {
     }
 
     this.status = RoundStatus.RUNNING;
-    this.updatedAt = new Date();
 
     return right(undefined);
   }
