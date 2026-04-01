@@ -32,7 +32,12 @@ export class PlaceBetUseCase {
   constructor(private readonly roundRepository: RoundRepository) {}
 
   async execute({ userId, amount }: PlaceBetInput): Promise<PlaceBetOutput> {
-    if (amount < BET_LIMITS.MIN_CENTS || amount > BET_LIMITS.MAX_CENTS) {
+    const amountInCents = BigInt(amount);
+
+    if (
+      amountInCents < BET_LIMITS.MIN_CENTS ||
+      amountInCents > BET_LIMITS.MAX_CENTS
+    ) {
       return left(
         new BadRequestException({
           message: `Bet must be between ${BET_LIMITS.MIN_CENTS} and ${BET_LIMITS.MAX_CENTS} cents`
@@ -40,7 +45,7 @@ export class PlaceBetUseCase {
       );
     }
 
-    const moneyResult = Money.fromCents(BigInt(amount));
+    const moneyResult = Money.fromCents(amountInCents);
 
     if (moneyResult.isLeft()) {
       return left(new BadRequestException({ message: "Invalid amount" }));
