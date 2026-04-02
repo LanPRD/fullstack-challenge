@@ -11,6 +11,7 @@ import {
   right,
   type Either
 } from "@/domain";
+import { WalletClientService } from "@/infrastructure/messaging";
 import { Injectable, Logger } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
@@ -30,7 +31,8 @@ export class CashoutUseCase {
 
   constructor(
     private readonly roundRepository: RoundRepository,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
+    private readonly walletClient: WalletClientService
   ) {}
 
   async execute({ betId, multiplier }: CashoutInput): Promise<CashoutOutput> {
@@ -56,6 +58,16 @@ export class CashoutUseCase {
       await this.roundRepository.save(round);
 
       const bet = cashoutResult.value;
+
+      if (bet.payout) {
+        await this.walletClient.credit({
+          userId: bet.userId.toString(),
+          amount: Number(bet.payout.toCents()),
+          roundId: round.id.toString(),
+          betId: bet.id.toString(),
+          reason: "cashout"
+        });
+      }
 
       this.eventEmitter.emit("bet:cashedout", {
         roundId: round.id.toString(),

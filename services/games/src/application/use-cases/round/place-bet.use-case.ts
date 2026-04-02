@@ -13,6 +13,7 @@ import {
   UniqueEntityId,
   type Either
 } from "@/domain";
+import { WalletClientService } from "@/infrastructure/messaging";
 import { Injectable, Logger } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 
@@ -32,7 +33,8 @@ export class PlaceBetUseCase {
 
   constructor(
     private readonly roundRepository: RoundRepository,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
+    private readonly walletClient: WalletClientService
   ) {}
 
   async execute({ userId, amount }: PlaceBetInput): Promise<PlaceBetOutput> {
@@ -76,6 +78,13 @@ export class PlaceBetUseCase {
       await this.roundRepository.save(round);
 
       const bet = betResult.value;
+
+      await this.walletClient.debit({
+        userId: bet.userId.toString(),
+        amount: Number(bet.amount.toCents()),
+        roundId: round.id.toString(),
+        betId: bet.id.toString()
+      });
 
       this.eventEmitter.emit("bet:placed", {
         roundId: round.id.toString(),

@@ -2,6 +2,7 @@ import "reflect-metadata";
 
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
+import { MicroserviceOptions, Transport } from "@nestjs/microservices";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import { EnvService } from "./infrastructure/env/env.service";
@@ -64,10 +65,25 @@ and the actual server seed is revealed after the crash, allowing players to veri
 
   const configService = app.get(EnvService);
   const port = configService.get("PORT");
+  const rabbitmqUrl = configService.get("RABBITMQ_URL");
 
+  // Connect to RabbitMQ as microservice to receive events from Wallets
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: [rabbitmqUrl],
+      queue: "games_events",
+      queueOptions: {
+        durable: true
+      }
+    }
+  });
+
+  await app.startAllMicroservices();
   await app.listen(port, "0.0.0.0");
 
   console.log(`Games service running on port ${port}`);
+  console.log(`Games microservice listening on RabbitMQ`);
   console.log(`Swagger docs available at http://localhost:${port}/docs`);
 }
 
