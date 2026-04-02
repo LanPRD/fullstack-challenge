@@ -3,6 +3,7 @@ import {
   GetRoundsHistoryUseCase,
   VerifyRoundUseCase
 } from "@/application/use-cases/round";
+import { Public } from "@/infrastructure/auth";
 import {
   BadRequestException,
   Controller,
@@ -13,11 +14,13 @@ import {
   Query
 } from "@nestjs/common";
 import {
+  ApiExtraModels,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiTags
+  ApiTags,
+  getSchemaPath
 } from "@nestjs/swagger";
 import {
   PaginatedResponseDto,
@@ -26,7 +29,9 @@ import {
   VerifyRoundResponseDto
 } from "../dtos";
 
+@Public()
 @ApiTags("Rounds")
+@ApiExtraModels(PaginatedResponseDto, RoundResponseDto)
 @Controller("rounds")
 export class RoundsController {
   constructor(
@@ -35,7 +40,7 @@ export class RoundsController {
     private readonly verifyRound: VerifyRoundUseCase
   ) {}
 
-  @Get()
+  @Get("history")
   @ApiOperation({
     summary: "Get rounds history",
     description:
@@ -45,12 +50,12 @@ export class RoundsController {
     description: "Paginated list of rounds",
     schema: {
       allOf: [
-        { $ref: "#/components/schemas/PaginatedResponseDto" },
+        { $ref: getSchemaPath(PaginatedResponseDto) },
         {
           properties: {
             data: {
               type: "array",
-              items: { $ref: "#/components/schemas/RoundResponseDto" }
+              items: { $ref: getSchemaPath(RoundResponseDto) }
             }
           }
         }
@@ -115,7 +120,7 @@ export class RoundsController {
       bets: [
         {
           id: "123e4567-e89b-12d3-a456-426614174000",
-          oderId: "user-123",
+          userId: "user-123",
           roundId: "550e8400-e29b-41d4-a716-446655440000",
           status: "PENDING",
           amount: 10.5,
