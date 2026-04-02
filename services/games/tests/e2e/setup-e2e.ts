@@ -1,6 +1,16 @@
 import "dotenv/config";
 
-import { UseCasesModule } from "@/application/use-cases/use-cases.module";
+import {
+  CashoutUseCase,
+  CrashRoundUseCase,
+  CreateRoundUseCase,
+  GetCurrentRoundUseCase,
+  GetPlayerBetsHistoryUseCase,
+  GetRoundsHistoryUseCase,
+  PlaceBetUseCase,
+  StartRoundUseCase,
+  VerifyRoundUseCase
+} from "@/application/use-cases/round";
 import { DatabaseModule } from "@/infrastructure/database/database.module";
 import { PrismaService } from "@/infrastructure/database/prisma/prisma.service";
 import { EnvModule } from "@/infrastructure/env/env.module";
@@ -15,7 +25,7 @@ import {
 } from "@/presentation/controllers";
 import { GameGateway } from "@/presentation/gateways";
 import type { ExecutionContext, INestApplication } from "@nestjs/common";
-import { ValidationPipe } from "@nestjs/common";
+import { Module, ValidationPipe } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { Test } from "@nestjs/testing";
@@ -44,6 +54,38 @@ class MockWalletClientService {
     return "mock-correlation-id";
   }
 }
+
+// Mock MessagingModule without RabbitMQ connection
+@Module({
+  providers: [
+    {
+      provide: WalletClientService,
+      useClass: MockWalletClientService
+    }
+  ],
+  exports: [WalletClientService]
+})
+class MockMessagingModule {}
+
+// Test UseCasesModule without real MessagingModule
+const useCases = [
+  CreateRoundUseCase,
+  StartRoundUseCase,
+  CrashRoundUseCase,
+  PlaceBetUseCase,
+  CashoutUseCase,
+  GetCurrentRoundUseCase,
+  GetRoundsHistoryUseCase,
+  VerifyRoundUseCase,
+  GetPlayerBetsHistoryUseCase
+];
+
+@Module({
+  imports: [DatabaseModule, MockMessagingModule],
+  providers: useCases,
+  exports: useCases
+})
+class TestUseCasesModule {}
 
 const schemaId = randomUUID();
 
@@ -76,7 +118,7 @@ export async function setupE2E() {
       EventEmitterModule.forRoot(),
       DatabaseModule,
       GameEngineModule,
-      UseCasesModule
+      TestUseCasesModule
     ],
     controllers: [
       GamesController,
@@ -89,10 +131,6 @@ export async function setupE2E() {
       {
         provide: APP_GUARD,
         useClass: MockAuthGuard
-      },
-      {
-        provide: WalletClientService,
-        useClass: MockWalletClientService
       }
     ]
   })
