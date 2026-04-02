@@ -3,11 +3,11 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { EventPattern, Payload } from "@nestjs/microservices";
 import {
   WALLET_EVENTS,
-  WalletCreditedEvent,
-  WalletCreditFailedEvent,
-  WalletDebitedEvent,
-  WalletDebitFailedEvent
-} from "./contracts";
+  type WalletCreditedEvent,
+  type WalletCreditFailedEvent,
+  type WalletDebitedEvent,
+  type WalletDebitFailedEvent
+} from "./contracts/events";
 
 @Controller()
 export class WalletEventsController {

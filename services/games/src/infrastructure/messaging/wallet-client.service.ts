@@ -2,10 +2,10 @@ import { Inject, Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ClientProxy } from "@nestjs/microservices";
 import { randomUUID } from "node:crypto";
 import {
-  CreditWalletCommand,
-  DebitWalletCommand,
+  type CreditWalletCommand,
+  type DebitWalletCommand,
   WALLET_COMMANDS
-} from "./contracts";
+} from "./contracts/commands";
 
 @Injectable()
 export class WalletClientService implements OnModuleDestroy {
