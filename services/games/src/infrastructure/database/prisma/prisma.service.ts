@@ -14,16 +14,26 @@ export class PrismaService
 {
   constructor(env: EnvService) {
     const databaseUrl = env.get("DATABASE_URL");
+    const schema = PrismaService.extractSchema(databaseUrl);
 
     const adapter = new PrismaPg(
-      { connectionString: databaseUrl },
-      { schema: "public" }
+      { connectionString: databaseUrl.split("?")[0] },
+      { schema }
     );
 
     super({
       log: ["warn", "error"],
       adapter
     });
+  }
+
+  private static extractSchema(url: string): string {
+    try {
+      const parsed = new URL(url);
+      return parsed.searchParams.get("schema") ?? "public";
+    } catch {
+      return "public";
+    }
   }
 
   async onModuleInit() {
