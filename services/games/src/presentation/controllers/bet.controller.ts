@@ -40,7 +40,7 @@ export class BetController {
     type: BetResponseDto,
     example: {
       id: "550e8400-e29b-41d4-a716-446655440000",
-      oderId: "28ea6d92-461c-4a27-bc42-d7d81b3348f6",
+      userId: "28ea6d92-461c-4a27-bc42-d7d81b3348f6",
       roundId: "789e0123-e45b-67d8-a901-234567890000",
       status: "PENDING",
       amount: 10.0,
@@ -95,7 +95,7 @@ export class BetController {
     type: BetResponseDto,
     example: {
       id: "550e8400-e29b-41d4-a716-446655440000",
-      oderId: "28ea6d92-461c-4a27-bc42-d7d81b3348f6",
+      userId: "28ea6d92-461c-4a27-bc42-d7d81b3348f6",
       roundId: "789e0123-e45b-67d8-a901-234567890000",
       status: "CASHED_OUT",
       amount: 10.0,
