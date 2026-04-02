@@ -14,8 +14,10 @@ export class PrismaBetMapper {
     }
 
     let payout: Money | null = null;
+
     if (raw.payout !== null) {
       const payoutResult = Money.fromCents(raw.payout);
+
       if (payoutResult.isRight()) {
         payout = payoutResult.value;
       }
@@ -25,7 +27,7 @@ export class PrismaBetMapper {
       {
         userId: new UniqueEntityId(raw.userId),
         roundId: new UniqueEntityId(raw.roundId),
-        status: this.mapStatus(raw.status),
+        status: PrismaBetMapper.mapStatus(raw.status),
         amount: moneyResult.value,
         cashoutMultiplier:
           raw.cashoutMultiplier ? Number(raw.cashoutMultiplier) : null,

@@ -1,11 +1,5 @@
 import { InternalException } from "@/application/errors";
-import {
-  Round,
-  left,
-  right,
-  type Either,
-  type RoundRepository
-} from "@/domain";
+import { Round, RoundRepository, left, right, type Either } from "@/domain";
 import { Injectable, Logger } from "@nestjs/common";
 
 type CreateRoundOutput = Either<InternalException, Round>;

@@ -3,13 +3,7 @@ import {
   InternalException,
   NotFoundException
 } from "@/application/errors";
-import {
-  Round,
-  left,
-  right,
-  type Either,
-  type RoundRepository
-} from "@/domain";
+import { Round, RoundRepository, left, right, type Either } from "@/domain";
 import { Injectable, Logger } from "@nestjs/common";
 
 type CrashRoundOutput = Either<

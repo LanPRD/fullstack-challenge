@@ -26,7 +26,7 @@ export class PrismaRoundRepository implements RoundRepository {
   }
 
   async findCurrent(): Promise<Round | null> {
-    const round = await this.prisma.round.findFirst({
+    const raw = await this.prisma.round.findFirst({
       where: {
         status: { in: ["BETTING", "RUNNING"] }
       },
@@ -34,9 +34,13 @@ export class PrismaRoundRepository implements RoundRepository {
       orderBy: { createdAt: "desc" }
     });
 
-    if (!round) return null;
+    if (!raw) {
+      return null;
+    }
 
-    return PrismaRoundMapper.toDomain(round);
+    const round = PrismaRoundMapper.toDomain(raw);
+
+    return round;
   }
 
   async findMany(options: PaginationOptions): Promise<PaginatedResult<Round>> {

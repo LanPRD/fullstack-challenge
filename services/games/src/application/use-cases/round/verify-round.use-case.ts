@@ -1,10 +1,10 @@
 import { BadRequestException, NotFoundException } from "@/application/errors";
 import {
+  RoundRepository,
   UniqueEntityId,
   left,
   right,
-  type Either,
-  type RoundRepository
+  type Either
 } from "@/domain";
 import { Injectable } from "@nestjs/common";
 

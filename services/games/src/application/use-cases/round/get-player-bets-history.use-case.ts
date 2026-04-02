@@ -1,10 +1,10 @@
 import { InternalException } from "@/application/errors";
 import {
   Bet,
+  BetRepository,
   UniqueEntityId,
   left,
   right,
-  type BetRepository,
   type Either,
   type PaginatedResult
 } from "@/domain";

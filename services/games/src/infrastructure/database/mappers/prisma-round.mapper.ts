@@ -17,9 +17,11 @@ export class PrismaRoundMapper {
       Number(raw.crashPoint)
     );
 
+    const id = new UniqueEntityId(raw.id);
+
     const round = new Round(
       {
-        status: this.mapStatus(raw.status),
+        status: PrismaRoundMapper.mapStatus(raw.status),
         provablyFair,
         startedAt: raw.startedAt,
         endedAt: raw.endedAt,
@@ -27,7 +29,7 @@ export class PrismaRoundMapper {
         createdAt: raw.createdAt,
         updatedAt: raw.updatedAt
       },
-      new UniqueEntityId(raw.id)
+      id
     );
 
     if (raw.bets) {

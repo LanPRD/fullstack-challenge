@@ -1,11 +1,11 @@
 import { InternalException } from "@/application/errors";
 import {
   Round,
+  RoundRepository,
   left,
   right,
   type Either,
-  type PaginatedResult,
-  type RoundRepository
+  type PaginatedResult
 } from "@/domain";
 import { Injectable, Logger } from "@nestjs/common";
 

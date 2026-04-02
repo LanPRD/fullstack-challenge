@@ -5,11 +5,11 @@ import {
 } from "@/application/errors";
 import {
   Bet,
+  RoundRepository,
+  UniqueEntityId,
   left,
   right,
-  UniqueEntityId,
-  type Either,
-  type RoundRepository
+  type Either
 } from "@/domain";
 import { Injectable, Logger } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";

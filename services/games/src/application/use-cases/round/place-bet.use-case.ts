@@ -9,9 +9,9 @@ import {
   left,
   Money,
   right,
+  RoundRepository,
   UniqueEntityId,
-  type Either,
-  type RoundRepository
+  type Either
 } from "@/domain";
 import { Injectable, Logger } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
