@@ -1,8 +1,10 @@
 import "reflect-metadata";
+
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
+import { EnvService } from "./infrastructure/env/env.service";
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -38,8 +40,17 @@ and the actual server seed is revealed after the crash, allowing players to veri
     `
     )
     .setVersion("1.0")
+    .addBearerAuth(
+      {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        description: "Enter your Keycloak JWT token"
+      },
+      "bearer"
+    )
     .addTag("Rounds", "Round history, current state, and verification")
-    .addTag("Bets", "Player bet history")
+    .addTag("Bets", "Player bet history (requires authentication)")
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -51,8 +62,11 @@ and the actual server seed is revealed after the crash, allowing players to veri
     }
   });
 
-  const port = process.env.PORT;
+  const configService = app.get(EnvService);
+  const port = configService.get("PORT");
+
   await app.listen(port, "0.0.0.0");
+
   console.log(`Games service running on port ${port}`);
   console.log(`Swagger docs available at http://localhost:${port}/docs`);
 }
