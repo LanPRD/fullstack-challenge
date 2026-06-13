@@ -26,7 +26,7 @@ import { WalletResponseDto } from "../dtos";
 
 @ApiBearerAuth()
 @ApiTags("Wallets")
-@Controller("wallets")
+@Controller()
 export class WalletsController {
   constructor(
     private readonly createWalletUseCase: CreateWalletUseCase,
