@@ -1,6 +1,6 @@
 import { Money, UniqueEntityId, WalletRepository } from "@/domain";
 import type { DebitWalletCommand } from "@/infrastructure/messaging/contracts/commands";
-import type { GamesEventService } from "@/infrastructure/messaging/games-event.service";
+import { GamesEventService } from "@/infrastructure/messaging/games-event.service";
 import { Injectable, Logger } from "@nestjs/common";
 
 @Injectable()
@@ -12,7 +12,7 @@ export class DebitWalletUseCase {
     private readonly gamesEventService: GamesEventService
   ) {}
 
-  async execute(command: DebitWalletCommand): Promise<void> {
+  async execute(command: DebitWalletCommand): Promise<{ success: boolean; reason?: string }> {
     const wallet = await this.walletRepository.findByUserId(
       new UniqueEntityId(command.userId)
     );
@@ -29,7 +29,7 @@ export class DebitWalletUseCase {
         betId: command.betId,
         reason: "wallet_not_found"
       });
-      return;
+      return { success: false, reason: "wallet_not_found" };
     }
 
     const amountResult = Money.fromCents(BigInt(command.amount));
@@ -43,7 +43,7 @@ export class DebitWalletUseCase {
         betId: command.betId,
         reason: "internal_error"
       });
-      return;
+      return { success: false, reason: "internal_error" };
     }
 
     const debitResult = wallet.debit(amountResult.value);
@@ -60,7 +60,7 @@ export class DebitWalletUseCase {
         betId: command.betId,
         reason: "insufficient_funds"
       });
-      return;
+      return { success: false, reason: "insufficient_funds" };
     }
 
     try {
@@ -78,6 +78,7 @@ export class DebitWalletUseCase {
       this._logger.log(
         `Debited userId=${command.userId}, amount=${command.amount}`
       );
+      return { success: true };
     } catch (error) {
       this._logger.error(`Error saving wallet after debit: ${error}`);
       await this.gamesEventService.emitDebitFailed({
@@ -88,6 +89,7 @@ export class DebitWalletUseCase {
         betId: command.betId,
         reason: "internal_error"
       });
+      return { success: false, reason: "internal_error" };
     }
   }
 }

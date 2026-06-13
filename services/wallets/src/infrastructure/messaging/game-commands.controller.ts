@@ -3,7 +3,7 @@ import {
   DebitWalletUseCase
 } from "@/application/use-cases/wallet";
 import { Controller, Logger } from "@nestjs/common";
-import { EventPattern, Payload } from "@nestjs/microservices";
+import { EventPattern, MessagePattern, Payload } from "@nestjs/microservices";
 import {
   WALLET_COMMANDS,
   type CreditWalletCommand,
@@ -19,12 +19,12 @@ export class GameCommandsController {
     private readonly creditWalletUseCase: CreditWalletUseCase
   ) {}
 
-  @EventPattern(WALLET_COMMANDS.DEBIT)
-  async handleDebit(@Payload() command: DebitWalletCommand): Promise<void> {
+  @MessagePattern(WALLET_COMMANDS.DEBIT)
+  async handleDebit(@Payload() command: DebitWalletCommand): Promise<{ success: boolean; reason?: string }> {
     this._logger.log(
       `Received debit command: userId=${command.userId}, amount=${command.amount}, betId=${command.betId}`
     );
-    await this.debitWalletUseCase.execute(command);
+    return this.debitWalletUseCase.execute(command);
   }
 
   @EventPattern(WALLET_COMMANDS.CREDIT)

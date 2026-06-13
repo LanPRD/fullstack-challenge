@@ -74,7 +74,10 @@ export class CashoutUseCase {
         betId: bet.id.toString(),
         userId: bet.userId.toString(),
         multiplier: bet.cashoutMultiplier,
-        payout: bet.payout?.toCents().toString()
+        payout:
+          bet.payout ?
+            (Number(bet.payout.toCents()) / 100).toString()
+          : undefined
       });
 
       return right(bet);

@@ -74,23 +74,33 @@ export class PlaceBetUseCase {
       );
     }
 
+    const bet = betResult.value;
+
     try {
       await this.roundRepository.save(round);
 
-      const bet = betResult.value;
-
-      await this.walletClient.debit({
+      const debitResult = await this.walletClient.debit({
         userId: bet.userId.toString(),
         amount: Number(bet.amount.toCents()),
         roundId: round.id.toString(),
         betId: bet.id.toString()
       });
 
+      if (!debitResult.success) {
+        bet.cancel();
+        await this.roundRepository.save(round);
+        const reason = debitResult.reason ?? "debit_failed";
+        this._logger.warn(
+          `Bet rejected (debit failed): betId=${bet.id}, reason=${reason}`
+        );
+        return left(new BadRequestException({ message: "Insufficient funds" }));
+      }
+
       this.eventEmitter.emit("bet:placed", {
         roundId: round.id.toString(),
         betId: bet.id.toString(),
         userId: bet.userId.toString(),
-        amount: bet.amount.toCents().toString()
+        amount: (Number(bet.amount.toCents()) / 100).toString()
       });
 
       return right(bet);

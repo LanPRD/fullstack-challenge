@@ -104,7 +104,7 @@ export class Round extends Entity<RoundProps> {
     }
 
     const existingBet = this._bets.find(
-      bet => bet.userId.toString() === userId.toString()
+      bet => bet.userId.toString() === userId.toString() && bet.isPending
     );
 
     if (existingBet) {

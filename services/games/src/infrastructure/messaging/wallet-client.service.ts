@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ClientProxy } from "@nestjs/microservices";
 import { randomUUID } from "node:crypto";
+import { firstValueFrom } from "rxjs";
 import {
   type CreditWalletCommand,
   type DebitWalletCommand,
@@ -22,7 +23,7 @@ export class WalletClientService implements OnModuleDestroy {
     amount: number;
     roundId: string;
     betId: string;
-  }): Promise<string> {
+  }): Promise<{ success: boolean; reason?: string }> {
     const correlationId = randomUUID();
 
     const command: DebitWalletCommand = {
@@ -35,9 +36,12 @@ export class WalletClientService implements OnModuleDestroy {
 
     this._logger.log(`Sending debit command: ${JSON.stringify(command)}`);
 
-    this.client.emit(WALLET_COMMANDS.DEBIT, command);
-
-    return correlationId;
+    return firstValueFrom(
+      this.client.send<{ success: boolean; reason?: string }>(
+        WALLET_COMMANDS.DEBIT,
+        command
+      )
+    );
   }
 
   async credit(params: {
