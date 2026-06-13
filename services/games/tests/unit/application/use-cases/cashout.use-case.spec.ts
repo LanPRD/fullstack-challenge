@@ -5,6 +5,7 @@ import {
 } from "@/application/errors";
 import { CashoutUseCase } from "@/application/use-cases/round/cashout.use-case";
 import { Money, Round, UniqueEntityId } from "@/domain";
+import type { WalletClientService } from "@/infrastructure/messaging";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import { InMemoryRoundRepository } from "../../../repositories";
@@ -13,11 +14,16 @@ describe("CashoutUseCase", () => {
   let sut: CashoutUseCase;
   let roundRepository: InMemoryRoundRepository;
   let eventEmitter: EventEmitter2;
+  let walletClient: WalletClientService;
 
   beforeEach(() => {
     roundRepository = new InMemoryRoundRepository();
     eventEmitter = { emit: mock(() => true) } as unknown as EventEmitter2;
-    sut = new CashoutUseCase(roundRepository, eventEmitter);
+    walletClient = {
+      debit: mock(() => Promise.resolve("mock-correlation-id")),
+      credit: mock(() => Promise.resolve("mock-correlation-id"))
+    } as unknown as WalletClientService;
+    sut = new CashoutUseCase(roundRepository, eventEmitter, walletClient);
   });
 
   function createRunningRoundWithBet(userId: UniqueEntityId, amount: bigint) {

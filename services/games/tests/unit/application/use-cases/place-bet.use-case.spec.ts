@@ -5,6 +5,7 @@ import {
 } from "@/application/errors";
 import { PlaceBetUseCase } from "@/application/use-cases/round/place-bet.use-case";
 import { BET_LIMITS, Money, Round, UniqueEntityId } from "@/domain";
+import type { WalletClientService } from "@/infrastructure/messaging";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import { InMemoryRoundRepository } from "../../../repositories";
@@ -13,11 +14,16 @@ describe("PlaceBetUseCase", () => {
   let sut: PlaceBetUseCase;
   let roundRepository: InMemoryRoundRepository;
   let eventEmitter: EventEmitter2;
+  let walletClient: WalletClientService;
 
   beforeEach(() => {
     roundRepository = new InMemoryRoundRepository();
     eventEmitter = { emit: mock(() => true) } as unknown as EventEmitter2;
-    sut = new PlaceBetUseCase(roundRepository, eventEmitter);
+    walletClient = {
+      debit: mock(() => Promise.resolve("mock-correlation-id")),
+      credit: mock(() => Promise.resolve("mock-correlation-id"))
+    } as unknown as WalletClientService;
+    sut = new PlaceBetUseCase(roundRepository, eventEmitter, walletClient);
   });
 
   function createActiveRound(): Round {
