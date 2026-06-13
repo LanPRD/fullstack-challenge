@@ -57,7 +57,8 @@ export class PrismaBetMapper {
     const statusMap: Record<PrismaBetStatus, BetStatus> = {
       PENDING: BetStatus.PENDING,
       CASHED_OUT: BetStatus.CASHED_OUT,
-      LOST: BetStatus.LOST
+      LOST: BetStatus.LOST,
+      CANCELLED: BetStatus.CANCELLED
     };
     return statusMap[status];
   }

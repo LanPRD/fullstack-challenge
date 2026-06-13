@@ -76,6 +76,10 @@ export class Bet extends Entity<BetProps> {
     return this.props.createdAt;
   }
 
+  get isCancelled(): boolean {
+    return this.props.status === BetStatus.CANCELLED;
+  }
+
   applyCashout(multiplier: number): void {
     this.cashoutMultiplier = multiplier;
     this.payout = this.amount.multiply(multiplier);
@@ -84,6 +88,10 @@ export class Bet extends Entity<BetProps> {
 
   markAsLost(): void {
     this.status = BetStatus.LOST;
+  }
+
+  cancel(): void {
+    this.status = BetStatus.CANCELLED;
   }
 
   static create(
