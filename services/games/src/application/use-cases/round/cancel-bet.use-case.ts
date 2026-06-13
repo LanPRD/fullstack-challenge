@@ -1,13 +1,16 @@
 import { BetRepository, UniqueEntityId } from "@/domain";
 import type { WalletDebitFailedEvent } from "@/infrastructure/messaging/contracts/events";
 import { Injectable, Logger } from "@nestjs/common";
-import { OnEvent } from "@nestjs/event-emitter";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 
 @Injectable()
 export class CancelBetUseCase {
   private readonly _logger = new Logger(CancelBetUseCase.name);
 
-  constructor(private readonly betRepository: BetRepository) {}
+  constructor(
+    private readonly betRepository: BetRepository,
+    private readonly eventEmitter: EventEmitter2
+  ) {}
 
   @OnEvent("wallet:debit_failed")
   async handle(event: WalletDebitFailedEvent): Promise<void> {
@@ -35,5 +38,11 @@ export class CancelBetUseCase {
     this._logger.warn(
       `Bet cancelled: betId=${event.betId}, userId=${event.userId}, reason=${event.reason}`
     );
+
+    this.eventEmitter.emit("bet:cancelled", {
+      betId: event.betId,
+      userId: event.userId,
+      reason: event.reason
+    });
   }
 }

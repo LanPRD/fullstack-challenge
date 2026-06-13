@@ -46,6 +46,12 @@ interface BetCashedOutPayload {
   payout: string;
 }
 
+interface BetCancelledPayload {
+  betId: string;
+  userId: string;
+  reason: string;
+}
+
 @WebSocketGateway({
   cors: {
     origin: "*"
@@ -100,5 +106,10 @@ export class GameGateway
   @OnEvent("bet:cashedout")
   handleBetCashedOut(payload: BetCashedOutPayload) {
     this.server.emit("bet:cashedout", payload);
+  }
+
+  @OnEvent("bet:cancelled")
+  handleBetCancelled(payload: BetCancelledPayload) {
+    this.server.emit("bet:cancelled", payload);
   }
 }
