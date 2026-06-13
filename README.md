@@ -8,27 +8,27 @@ Construído como solução completa para um desafio técnico sênior de fullstac
 
 ## Stack
 
-| Camada | Tecnologia |
-|---|---|
-| Runtime | Bun |
-| Backend | NestJS · TypeScript strict |
-| ORM | Prisma |
-| Banco | PostgreSQL 18 |
-| Mensageria | RabbitMQ |
-| API Gateway | Kong (DB-less) |
-| Auth | Keycloak 26 (OIDC + PKCE) |
-| WebSocket | Socket.io via `@nestjs/websockets` |
-| Frontend | React · Vite · TypeScript |
-| Estado | TanStack Query · Zustand |
-| Estilo | Tailwind CSS |
-| Testes | Bun test runner (unit + E2E) |
-| Infra | Docker Compose · Bun workspaces |
+| Camada      | Tecnologia                         |
+| ----------- | ---------------------------------- |
+| Runtime     | Bun                                |
+| Backend     | NestJS · TypeScript strict         |
+| ORM         | Prisma                             |
+| Banco       | PostgreSQL 18                      |
+| Mensageria  | RabbitMQ                           |
+| API Gateway | Kong (DB-less)                     |
+| Auth        | Keycloak 26 (OIDC + PKCE)          |
+| WebSocket   | Socket.io via `@nestjs/websockets` |
+| Frontend    | React · Vite · TypeScript          |
+| Estado      | TanStack Query · Zustand           |
+| Estilo      | Tailwind CSS                       |
+| Testes      | Bun test runner (unit + E2E)       |
+| Infra       | Docker Compose · Bun workspaces    |
 
 ---
 
 ## Arquitetura
 
-```
+```text
 Frontend (React)
       │
       ▼
@@ -53,21 +53,21 @@ O sistema é dividido em dois bounded contexts independentes:
 
 ## Decisões técnicas relevantes
 
-**Débito síncrono via RabbitMQ request-response**
+### Débito síncrono via RabbitMQ request-response
 
 A arquitetura inicial usava fire-and-forget para débito: o Games Service salvava a aposta e enviava o comando de débito sem aguardar resposta, retornando HTTP 200 imediatamente. Isso criava uma janela onde um usuário podia sacar antes do débito ser processado — recebendo crédito sem saldo suficiente.
 
 A solução foi mudar o padrão de `emit` para `send` (RPC sobre RabbitMQ): o Games Service aguarda a resposta do Wallets antes de confirmar a aposta. Se o débito falhar, a aposta é cancelada sincronicamente e o backend retorna HTTP 400 ao cliente.
 
-**Provably fair**
+### Provably fair
 
 O crash point de cada rodada é determinado por um seed gerado antes das apostas, usando HMAC-SHA256. O hash do seed é publicado no início da rodada; o seed completo é revelado após o crash — permitindo verificação independente pelo jogador via `GET /rounds/:id/verify`.
 
-**DDD com camadas explícitas**
+### DDD com camadas explícitas
 
 Cada serviço segue `domain → application → infrastructure → presentation`. Entidades de domínio sem dependências externas, use cases orquestrando a lógica, repositórios abstratos no domínio implementados na infraestrutura com Prisma.
 
-**Monorepo com Bun workspaces**
+### Monorepo com Bun workspaces
 
 Tipos dos eventos RabbitMQ compartilhados via `@crash/events` (`packages/events/`), evitando duplicação e garantindo contrato único entre os serviços. O build Docker usa a raiz como contexto para que o `bun install` resolva as referências `workspace:*`.
 
@@ -93,14 +93,14 @@ Para adicionar saldo, use o Prisma Studio do serviço wallets:
 cd services/wallets && bunx prisma studio
 ```
 
-| Serviço | URL |
-|---|---|
-| Frontend | http://localhost:3000 |
-| API (via Kong) | http://localhost:8000 |
-| Swagger — Games | http://localhost:4001/docs |
-| Swagger — Wallets | http://localhost:4002/docs |
-| RabbitMQ UI | http://localhost:15672 (admin/admin) |
-| Keycloak | http://localhost:8080 (admin/admin) |
+| Serviço           | URL                                  |
+| ----------------- | ------------------------------------ |
+| Frontend          | http://localhost:3000                |
+| API (via Kong)    | http://localhost:8000                |
+| Swagger — Games   | http://localhost:4001/docs           |
+| Swagger — Wallets | http://localhost:4002/docs           |
+| RabbitMQ UI       | http://localhost:15672 (admin/admin) |
+| Keycloak          | http://localhost:8080 (admin/admin)  |
 
 ---
 
@@ -121,7 +121,7 @@ cd services/games && bun test tests/e2e
 
 ## Estrutura
 
-```
+```text
 fullstack-challenge/
 ├── services/
 │   ├── games/          NestJS — motor do jogo, apostas, WebSocket
