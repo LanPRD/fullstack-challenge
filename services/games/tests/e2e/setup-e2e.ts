@@ -31,6 +31,7 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
 import { Test } from "@nestjs/testing";
 import { execSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { afterAll, beforeAll, beforeEach } from "bun:test";
 
 export const TEST_USER = {
   id: "test-user-id",
@@ -180,3 +181,15 @@ export async function cleanDatabase() {
   await prisma.bet.deleteMany();
   await prisma.round.deleteMany();
 }
+
+beforeAll(async () => {
+  await setupE2E();
+});
+
+afterAll(async () => {
+  await teardownE2E();
+});
+
+beforeEach(async () => {
+  await cleanDatabase();
+});

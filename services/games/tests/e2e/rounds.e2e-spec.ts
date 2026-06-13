@@ -1,27 +1,15 @@
+import { RoundStatus, UniqueEntityId } from "@/domain";
 import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  test
-} from "bun:test";
+  PrismaBetMapper,
+  PrismaRoundMapper
+} from "@/infrastructure/database/mappers";
+import { describe, expect, test } from "bun:test";
 import request from "supertest";
-import { app, cleanDatabase, prisma, setupE2E, teardownE2E } from "./setup-e2e";
+import { BetFactory } from "tests/factories/bet-factory";
+import { RoundFactory } from "tests/factories/round-factory";
+import { app, prisma } from "./setup-e2e";
 
 describe("Rounds E2E", () => {
-  beforeAll(async () => {
-    await setupE2E();
-  });
-
-  afterAll(async () => {
-    await teardownE2E();
-  });
-
-  beforeEach(async () => {
-    await cleanDatabase();
-  });
-
   describe("GET /rounds/history", () => {
     test("returns empty list when no rounds exist", async () => {
       const response = await request(app.getHttpServer())
@@ -37,29 +25,25 @@ describe("Rounds E2E", () => {
     });
 
     test("returns paginated list of crashed rounds", async () => {
+      const round1 = RoundFactory.build({
+        status: RoundStatus.CRASHED,
+        startedAt: new Date("2024-01-01T10:00:00Z"),
+        endedAt: new Date("2024-01-01T10:00:10Z"),
+        createdAt: new Date("2024-01-01T09:59:50Z")
+      });
+
+      const round2 = RoundFactory.build({
+        status: RoundStatus.CRASHED,
+        startedAt: new Date("2024-01-01T10:01:00Z"),
+        endedAt: new Date("2024-01-01T10:01:05Z"),
+        createdAt: new Date("2024-01-01T10:00:50Z")
+      });
+
       // Create crashed rounds directly in DB
       await prisma.round.createMany({
         data: [
-          {
-            id: "round-1",
-            status: "CRASHED",
-            serverSeed: "seed-1",
-            serverSeedHash: "hash-1",
-            crashPoint: 2.5,
-            startedAt: new Date("2024-01-01T10:00:00Z"),
-            endedAt: new Date("2024-01-01T10:00:10Z"),
-            createdAt: new Date("2024-01-01T09:59:50Z")
-          },
-          {
-            id: "round-2",
-            status: "CRASHED",
-            serverSeed: "seed-2",
-            serverSeedHash: "hash-2",
-            crashPoint: 1.5,
-            startedAt: new Date("2024-01-01T10:01:00Z"),
-            endedAt: new Date("2024-01-01T10:01:05Z"),
-            createdAt: new Date("2024-01-01T10:00:50Z")
-          }
+          PrismaRoundMapper.toPrisma(round1),
+          PrismaRoundMapper.toPrisma(round2)
         ]
       });
 
@@ -73,36 +57,30 @@ describe("Rounds E2E", () => {
     });
 
     test("respects pagination parameters", async () => {
+      const round1 = RoundFactory.build({
+        status: RoundStatus.CRASHED,
+        startedAt: new Date(),
+        endedAt: new Date()
+      });
+
+      const round2 = RoundFactory.build({
+        status: RoundStatus.CRASHED,
+        startedAt: new Date(),
+        endedAt: new Date()
+      });
+
+      const round3 = RoundFactory.build({
+        status: RoundStatus.CRASHED,
+        startedAt: new Date(),
+        endedAt: new Date()
+      });
+
       // Create 3 rounds
       await prisma.round.createMany({
         data: [
-          {
-            id: "round-1",
-            status: "CRASHED",
-            serverSeed: "seed-1",
-            serverSeedHash: "hash-1",
-            crashPoint: 2.5,
-            startedAt: new Date(),
-            endedAt: new Date()
-          },
-          {
-            id: "round-2",
-            status: "CRASHED",
-            serverSeed: "seed-2",
-            serverSeedHash: "hash-2",
-            crashPoint: 1.5,
-            startedAt: new Date(),
-            endedAt: new Date()
-          },
-          {
-            id: "round-3",
-            status: "CRASHED",
-            serverSeed: "seed-3",
-            serverSeedHash: "hash-3",
-            crashPoint: 3.0,
-            startedAt: new Date(),
-            endedAt: new Date()
-          }
+          PrismaRoundMapper.toPrisma(round1),
+          PrismaRoundMapper.toPrisma(round2),
+          PrismaRoundMapper.toPrisma(round3)
         ]
       });
 
@@ -127,15 +105,10 @@ describe("Rounds E2E", () => {
     });
 
     test("returns current round in BETTING status", async () => {
+      const round = RoundFactory.build();
+
       await prisma.round.create({
-        data: {
-          id: "round-betting",
-          status: "BETTING",
-          serverSeed: "seed-betting",
-          serverSeedHash: "hash-betting",
-          crashPoint: 2.5,
-          createdAt: new Date()
-        }
+        data: PrismaRoundMapper.toPrisma(round)
       });
 
       const response = await request(app.getHttpServer())
@@ -150,23 +123,18 @@ describe("Rounds E2E", () => {
     });
 
     test("returns current round in RUNNING status with bets", async () => {
+      const round = RoundFactory.build({
+        status: RoundStatus.RUNNING,
+        startedAt: new Date()
+      });
+
+      const bet = BetFactory.build({}, undefined, round.id);
+
       await prisma.round.create({
         data: {
-          id: "round-running",
-          status: "RUNNING",
-          serverSeed: "seed-running",
-          serverSeedHash: "hash-running",
-          crashPoint: 3.0,
-          startedAt: new Date(),
+          ...PrismaRoundMapper.toPrisma(round),
           bets: {
-            create: [
-              {
-                id: "bet-1",
-                userId: "user-1",
-                amount: 1000,
-                status: "PENDING"
-              }
-            ]
+            create: [PrismaBetMapper.toPrisma(bet)]
           }
         }
       });
@@ -192,14 +160,10 @@ describe("Rounds E2E", () => {
     });
 
     test("returns 400 for non-crashed round", async () => {
+      const round = RoundFactory.build();
+
       await prisma.round.create({
-        data: {
-          id: "round-betting",
-          status: "BETTING",
-          serverSeed: "seed",
-          serverSeedHash: "hash",
-          crashPoint: 2.0
-        }
+        data: PrismaRoundMapper.toPrisma(round)
       });
 
       const response = await request(app.getHttpServer())
@@ -210,16 +174,17 @@ describe("Rounds E2E", () => {
     });
 
     test("returns verification data for crashed round", async () => {
-      await prisma.round.create({
-        data: {
-          id: "round-crashed",
-          status: "CRASHED",
-          serverSeed: "my-secret-seed",
-          serverSeedHash: "my-hash",
-          crashPoint: 2.47,
+      const round = RoundFactory.build(
+        {
+          status: RoundStatus.CRASHED,
           startedAt: new Date("2024-01-01T10:00:00Z"),
           endedAt: new Date("2024-01-01T10:00:15Z")
-        }
+        },
+        new UniqueEntityId("round-crashed")
+      );
+
+      await prisma.round.create({
+        data: PrismaRoundMapper.toPrisma(round)
       });
 
       const response = await request(app.getHttpServer())
@@ -227,9 +192,11 @@ describe("Rounds E2E", () => {
         .expect(200);
 
       expect(response.body.roundId).toBe("round-crashed");
-      expect(response.body.serverSeed).toBe("my-secret-seed");
-      expect(response.body.serverSeedHash).toBe("my-hash");
-      expect(response.body.crashPoint).toBe(2.47);
+      expect(response.body.crashPoint).toBe(round.crashPoint);
+      expect(response.body.serverSeed).toBe(round.provablyFair.serverSeed);
+      expect(response.body.serverSeedHash).toBe(
+        round.provablyFair.serverSeedHash
+      );
     });
   });
 });

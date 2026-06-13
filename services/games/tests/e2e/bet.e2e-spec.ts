@@ -1,34 +1,15 @@
+import { BetStatus, RoundStatus, UniqueEntityId } from "@/domain";
 import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  test
-} from "bun:test";
+  PrismaBetMapper,
+  PrismaRoundMapper
+} from "@/infrastructure/database/mappers";
+import { describe, expect, test } from "bun:test";
 import request from "supertest";
-import {
-  app,
-  cleanDatabase,
-  prisma,
-  setupE2E,
-  teardownE2E,
-  TEST_USER
-} from "./setup-e2e";
+import { BetFactory } from "tests/factories/bet-factory";
+import { RoundFactory } from "tests/factories/round-factory";
+import { app, prisma, TEST_USER } from "./setup-e2e";
 
 describe("Bet E2E", () => {
-  beforeAll(async () => {
-    await setupE2E();
-  });
-
-  afterAll(async () => {
-    await teardownE2E();
-  });
-
-  beforeEach(async () => {
-    await cleanDatabase();
-  });
-
   describe("POST /bet", () => {
     test("returns 404 when no active round exists", async () => {
       const response = await request(app.getHttpServer())
@@ -40,14 +21,13 @@ describe("Bet E2E", () => {
     });
 
     test("returns 400 when amount is below minimum", async () => {
+      const round = RoundFactory.build(
+        { status: RoundStatus.BETTING },
+        new UniqueEntityId("round-betting")
+      );
+
       await prisma.round.create({
-        data: {
-          id: "round-betting",
-          status: "BETTING",
-          serverSeed: "seed",
-          serverSeedHash: "hash",
-          crashPoint: 2.5
-        }
+        data: PrismaRoundMapper.toPrisma(round)
       });
 
       const response = await request(app.getHttpServer())
@@ -59,14 +39,13 @@ describe("Bet E2E", () => {
     });
 
     test("returns 400 when amount is above maximum", async () => {
+      const round = RoundFactory.build(
+        { status: RoundStatus.BETTING },
+        new UniqueEntityId("round-betting")
+      );
+
       await prisma.round.create({
-        data: {
-          id: "round-betting",
-          status: "BETTING",
-          serverSeed: "seed",
-          serverSeedHash: "hash",
-          crashPoint: 2.5
-        }
+        data: PrismaRoundMapper.toPrisma(round)
       });
 
       const response = await request(app.getHttpServer())
@@ -78,15 +57,16 @@ describe("Bet E2E", () => {
     });
 
     test("returns 400 when round is not in betting phase", async () => {
-      await prisma.round.create({
-        data: {
-          id: "round-running",
-          status: "RUNNING",
-          serverSeed: "seed",
-          serverSeedHash: "hash",
-          crashPoint: 2.5,
+      const round = RoundFactory.build(
+        {
+          status: RoundStatus.RUNNING,
           startedAt: new Date()
-        }
+        },
+        new UniqueEntityId("round-running")
+      );
+
+      await prisma.round.create({
+        data: PrismaRoundMapper.toPrisma(round)
       });
 
       const response = await request(app.getHttpServer())
@@ -98,14 +78,13 @@ describe("Bet E2E", () => {
     });
 
     test("places bet successfully during betting phase", async () => {
+      const round = RoundFactory.build(
+        { status: RoundStatus.BETTING },
+        new UniqueEntityId("round-betting")
+      );
+
       await prisma.round.create({
-        data: {
-          id: "round-betting",
-          status: "BETTING",
-          serverSeed: "seed",
-          serverSeedHash: "hash",
-          crashPoint: 2.5
-        }
+        data: PrismaRoundMapper.toPrisma(round)
       });
 
       const response = await request(app.getHttpServer())
@@ -120,20 +99,26 @@ describe("Bet E2E", () => {
     });
 
     test("returns 400 when user already has a bet in the round", async () => {
+      const round = RoundFactory.build(
+        { status: RoundStatus.BETTING },
+        new UniqueEntityId("round-betting")
+      );
+
+      const existingBet = BetFactory.build(
+        {
+          status: BetStatus.PENDING,
+          amount: BetFactory.createMoney(BigInt(500))
+        },
+        new UniqueEntityId(TEST_USER.id),
+        round.id,
+        new UniqueEntityId("existing-bet")
+      );
+
       await prisma.round.create({
         data: {
-          id: "round-betting",
-          status: "BETTING",
-          serverSeed: "seed",
-          serverSeedHash: "hash",
-          crashPoint: 2.5,
+          ...PrismaRoundMapper.toPrisma(round),
           bets: {
-            create: {
-              id: "existing-bet",
-              userId: TEST_USER.id,
-              amount: 500,
-              status: "PENDING"
-            }
+            create: PrismaBetMapper.toPrisma(existingBet)
           }
         }
       });
@@ -149,15 +134,16 @@ describe("Bet E2E", () => {
 
   describe("POST /bet/cashout", () => {
     test("returns 404 when no active bet found", async () => {
-      await prisma.round.create({
-        data: {
-          id: "round-running",
-          status: "RUNNING",
-          serverSeed: "seed",
-          serverSeedHash: "hash",
-          crashPoint: 2.5,
+      const round = RoundFactory.build(
+        {
+          status: RoundStatus.RUNNING,
           startedAt: new Date()
-        }
+        },
+        new UniqueEntityId("round-running")
+      );
+
+      await prisma.round.create({
+        data: PrismaRoundMapper.toPrisma(round)
       });
 
       const response = await request(app.getHttpServer())
