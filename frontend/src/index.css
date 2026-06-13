@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --color-neon-green: #00ff88;
+  --color-neon-red: #ff3366;
+  --color-casino-dark: #07070f;
+  --color-casino-surface: #0f0f1a;
+  --color-casino-card: #16162a;
+  --color-casino-border: #2a2a4a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-casino-dark);
+  color: #e2e8f0;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  min-height: 100vh;
+  margin: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+@keyframes crashPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes cashoutFlash {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(0, 255, 136, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-crash {
+  animation: crashPulse 0.5s ease-in-out infinite;
+}
+
+.animate-cashout {
+  animation: cashoutFlash 1s ease-in-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
+}
+
+.glow-green {
+  text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88;
+}
+
+.glow-red {
+  text-shadow: 0 0 20px #ff3366, 0 0 40px #ff3366;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
