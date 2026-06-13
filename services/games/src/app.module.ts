@@ -1,6 +1,8 @@
 import { UseCasesModule } from "@/application/use-cases/use-cases.module";
 import { Module } from "@nestjs/common";
+import { APP_GUARD } from "@nestjs/core";
 import { EventEmitterModule } from "@nestjs/event-emitter";
+import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { AuthModule } from "./infrastructure/auth";
 import { EnvModule } from "./infrastructure/env/env.module";
 import { GameEngineModule } from "./infrastructure/game-engine/game-engine.module";
@@ -17,6 +19,18 @@ import { GameGateway } from "./presentation/gateways";
   imports: [
     EnvModule,
     EventEmitterModule.forRoot(),
+    ThrottlerModule.forRoot([
+      {
+        name: "default",
+        ttl: 60_000,
+        limit: 60
+      },
+      {
+        name: "bet",
+        ttl: 60_000,
+        limit: 5
+      }
+    ]),
     AuthModule,
     GameEngineModule,
     MessagingModule,
@@ -28,6 +42,12 @@ import { GameGateway } from "./presentation/gateways";
     BetsController,
     BetController
   ],
-  providers: [GameGateway]
+  providers: [
+    GameGateway,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
+  ]
 })
 export class AppModule {}

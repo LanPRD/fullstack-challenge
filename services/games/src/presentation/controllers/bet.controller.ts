@@ -15,8 +15,10 @@ import {
   ApiNotFoundResponse,
   ApiOperation,
   ApiTags,
+  ApiTooManyRequestsResponse,
   ApiUnauthorizedResponse
 } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import { BetResponseDto, PlaceBetDto } from "../dtos";
 
 @ApiBearerAuth()
@@ -30,6 +32,7 @@ export class BetController {
   ) {}
 
   @Post()
+  @Throttle({ bet: { ttl: 60_000, limit: 5 } })
   @ApiOperation({
     summary: "Place a bet",
     description:
@@ -62,6 +65,9 @@ export class BetController {
   @ApiUnauthorizedResponse({
     description: "Invalid or missing JWT token"
   })
+  @ApiTooManyRequestsResponse({
+    description: "Rate limit exceeded (5 requests per minute)"
+  })
   async placeBet(
     @Body() dto: PlaceBetDto,
     @CurrentUser() user: AuthUser
@@ -85,6 +91,7 @@ export class BetController {
   }
 
   @Post("cashout")
+  @Throttle({ bet: { ttl: 60_000, limit: 5 } })
   @ApiOperation({
     summary: "Cash out current bet",
     description:
@@ -124,6 +131,9 @@ export class BetController {
   })
   @ApiUnauthorizedResponse({
     description: "Invalid or missing JWT token"
+  })
+  @ApiTooManyRequestsResponse({
+    description: "Rate limit exceeded (5 requests per minute)"
   })
   async cashout(@CurrentUser() user: AuthUser): Promise<BetResponseDto> {
     const userBet = this.gameEngine.currentRound?.bets?.find(
