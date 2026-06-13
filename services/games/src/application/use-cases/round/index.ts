@@ -1,3 +1,4 @@
+export * from "./cancel-bet.use-case";
 export * from "./cashout.use-case";
 export * from "./crash-round.use-case";
 export * from "./create-round.use-case";

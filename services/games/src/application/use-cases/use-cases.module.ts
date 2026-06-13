@@ -2,6 +2,7 @@ import { DatabaseModule } from "@/infrastructure/database/database.module";
 import { MessagingModule } from "@/infrastructure/messaging";
 import { Module } from "@nestjs/common";
 import {
+  CancelBetUseCase,
   CashoutUseCase,
   CrashRoundUseCase,
   CreateRoundUseCase,
@@ -18,6 +19,7 @@ const useCases = [
   StartRoundUseCase,
   CrashRoundUseCase,
   PlaceBetUseCase,
+  CancelBetUseCase,
   CashoutUseCase,
   GetCurrentRoundUseCase,
   GetRoundsHistoryUseCase,
