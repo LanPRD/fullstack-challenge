@@ -12,7 +12,9 @@ export class DebitWalletUseCase {
     private readonly gamesEventService: GamesEventService
   ) {}
 
-  async execute(command: DebitWalletCommand): Promise<{ success: boolean; reason?: string }> {
+  async execute(
+    command: DebitWalletCommand
+  ): Promise<{ success: boolean; reason?: string }> {
     const wallet = await this.walletRepository.findByUserId(
       new UniqueEntityId(command.userId)
     );

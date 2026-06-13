@@ -20,7 +20,9 @@ export class GameCommandsController {
   ) {}
 
   @MessagePattern(WALLET_COMMANDS.DEBIT)
-  async handleDebit(@Payload() command: DebitWalletCommand): Promise<{ success: boolean; reason?: string }> {
+  async handleDebit(
+    @Payload() command: DebitWalletCommand
+  ): Promise<{ success: boolean; reason?: string }> {
     this._logger.log(
       `Received debit command: userId=${command.userId}, amount=${command.amount}, betId=${command.betId}`
     );
