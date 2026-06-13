@@ -36,7 +36,10 @@ describe("CreditWalletUseCase", () => {
   describe("execute", () => {
     it("should credit wallet and emit credited event", async () => {
       const userId = new UniqueEntityId();
-      const wallet = WalletFactory.build({ userId, balance: WalletFactory.createMoney(5_000n) });
+      const wallet = WalletFactory.build({
+        userId,
+        balance: WalletFactory.createMoney(5_000n)
+      });
       await walletRepository.save(wallet);
 
       await sut.execute(makeCommand(userId.toString()));
@@ -58,7 +61,10 @@ describe("CreditWalletUseCase", () => {
 
     it("should credit from zero balance", async () => {
       const userId = new UniqueEntityId();
-      const wallet = WalletFactory.build({ userId, balance: WalletFactory.createMoney(0n) });
+      const wallet = WalletFactory.build({
+        userId,
+        balance: WalletFactory.createMoney(0n)
+      });
       await walletRepository.save(wallet);
 
       await sut.execute(makeCommand(userId.toString(), { amount: 10_000 }));
@@ -72,7 +78,9 @@ describe("CreditWalletUseCase", () => {
       const wallet = WalletFactory.build({ userId });
       await walletRepository.save(wallet);
 
-      spyOn(walletRepository, "save").mockRejectedValueOnce(new Error("DB error"));
+      spyOn(walletRepository, "save").mockRejectedValueOnce(
+        new Error("DB error")
+      );
 
       await sut.execute(makeCommand(userId.toString()));
 
@@ -83,10 +91,15 @@ describe("CreditWalletUseCase", () => {
 
     it("should handle refund reason", async () => {
       const userId = new UniqueEntityId();
-      const wallet = WalletFactory.build({ userId, balance: WalletFactory.createMoney(0n) });
+      const wallet = WalletFactory.build({
+        userId,
+        balance: WalletFactory.createMoney(0n)
+      });
       await walletRepository.save(wallet);
 
-      await sut.execute(makeCommand(userId.toString(), { reason: "refund", amount: 5_000 }));
+      await sut.execute(
+        makeCommand(userId.toString(), { reason: "refund", amount: 5_000 })
+      );
 
       const saved = await walletRepository.findByUserId(userId);
       expect(saved?.balance.toCents()).toBe(5_000n);
@@ -95,7 +108,10 @@ describe("CreditWalletUseCase", () => {
 
     it("should include newBalance in credited event", async () => {
       const userId = new UniqueEntityId();
-      const wallet = WalletFactory.build({ userId, balance: WalletFactory.createMoney(1_000n) });
+      const wallet = WalletFactory.build({
+        userId,
+        balance: WalletFactory.createMoney(1_000n)
+      });
       await walletRepository.save(wallet);
 
       await sut.execute(makeCommand(userId.toString(), { amount: 4_000 }));

@@ -1,5 +1,12 @@
 import { NotFoundException } from "@/application/errors";
-import { UniqueEntityId, Wallet, WalletRepository, left, right, type Either } from "@/domain";
+import {
+  UniqueEntityId,
+  Wallet,
+  WalletRepository,
+  left,
+  right,
+  type Either
+} from "@/domain";
 import { Injectable } from "@nestjs/common";
 
 interface GetWalletInput {
@@ -13,7 +20,9 @@ export class GetWalletUseCase {
   constructor(private readonly walletRepository: WalletRepository) {}
 
   async execute({ userId }: GetWalletInput): Promise<GetWalletOutput> {
-    const wallet = await this.walletRepository.findByUserId(new UniqueEntityId(userId));
+    const wallet = await this.walletRepository.findByUserId(
+      new UniqueEntityId(userId)
+    );
 
     if (!wallet) {
       return left(new NotFoundException({ message: "Wallet not found" }));

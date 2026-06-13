@@ -8,7 +8,10 @@ export class WalletResponseDto {
   @ApiProperty({ example: "28ea6d92-461c-4a27-bc42-d7d81b3348f6" })
   userId: string;
 
-  @ApiProperty({ example: 1000.0, description: "Balance in currency units (not cents)" })
+  @ApiProperty({
+    example: 1000.0,
+    description: "Balance in currency units (not cents)"
+  })
   balance: number;
 
   @ApiProperty({ example: "2024-01-15T10:30:00.000Z" })

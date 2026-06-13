@@ -57,7 +57,9 @@ async function bootstrap(): Promise<void> {
   await app.listen(port, "0.0.0.0");
 
   console.log(`Wallets service running on port ${port}`);
-  console.log(`Wallets microservice listening on RabbitMQ queue: wallet_commands`);
+  console.log(
+    `Wallets microservice listening on RabbitMQ queue: wallet_commands`
+  );
   console.log(`Swagger docs available at http://localhost:${port}/docs`);
 }
 

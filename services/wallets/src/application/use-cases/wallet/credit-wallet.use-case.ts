@@ -18,7 +18,9 @@ export class CreditWalletUseCase {
     );
 
     if (!wallet) {
-      this._logger.warn(`Wallet not found for userId=${command.userId}, betId=${command.betId}`);
+      this._logger.warn(
+        `Wallet not found for userId=${command.userId}, betId=${command.betId}`
+      );
       await this.gamesEventService.emitCreditFailed({
         correlationId: command.correlationId,
         userId: command.userId,

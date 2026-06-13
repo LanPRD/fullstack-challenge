@@ -31,7 +31,9 @@ export class GamesEventService implements OnModuleDestroy {
   }
 
   async emitCredited(event: WalletCreditedEvent): Promise<void> {
-    this._logger.log(`Emitting ${WALLET_EVENTS.CREDITED}: betId=${event.betId}`);
+    this._logger.log(
+      `Emitting ${WALLET_EVENTS.CREDITED}: betId=${event.betId}`
+    );
     this.client.emit(WALLET_EVENTS.CREDITED, event);
   }
 

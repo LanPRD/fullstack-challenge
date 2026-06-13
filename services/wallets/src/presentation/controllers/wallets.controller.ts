@@ -1,4 +1,4 @@
-import { ConflictException, NotFoundException } from "@/application/errors";
+import { ConflictException } from "@/application/errors";
 import {
   CreateWalletUseCase,
   GetWalletUseCase
@@ -48,7 +48,10 @@ export class WalletsController {
     description:
       "Creates a wallet for the authenticated player. Each player can only have one wallet."
   })
-  @ApiCreatedResponse({ type: WalletResponseDto, description: "Wallet created" })
+  @ApiCreatedResponse({
+    type: WalletResponseDto,
+    description: "Wallet created"
+  })
   @ApiConflictResponse({ description: "Wallet already exists" })
   @ApiUnauthorizedResponse({ description: "Invalid or missing JWT token" })
   async create(@CurrentUser() user: AuthUser): Promise<WalletResponseDto> {

@@ -18,7 +18,9 @@ export class DebitWalletUseCase {
     );
 
     if (!wallet) {
-      this._logger.warn(`Wallet not found for userId=${command.userId}, betId=${command.betId}`);
+      this._logger.warn(
+        `Wallet not found for userId=${command.userId}, betId=${command.betId}`
+      );
       await this.gamesEventService.emitDebitFailed({
         correlationId: command.correlationId,
         userId: command.userId,
@@ -47,7 +49,9 @@ export class DebitWalletUseCase {
     const debitResult = wallet.debit(amountResult.value);
 
     if (debitResult.isLeft()) {
-      this._logger.warn(`Insufficient funds: userId=${command.userId}, amount=${command.amount}`);
+      this._logger.warn(
+        `Insufficient funds: userId=${command.userId}, amount=${command.amount}`
+      );
       await this.gamesEventService.emitDebitFailed({
         correlationId: command.correlationId,
         userId: command.userId,
@@ -71,7 +75,9 @@ export class DebitWalletUseCase {
         newBalance: wallet.balance.toNumber()
       });
 
-      this._logger.log(`Debited userId=${command.userId}, amount=${command.amount}`);
+      this._logger.log(
+        `Debited userId=${command.userId}, amount=${command.amount}`
+      );
     } catch (error) {
       this._logger.error(`Error saving wallet after debit: ${error}`);
       await this.gamesEventService.emitDebitFailed({

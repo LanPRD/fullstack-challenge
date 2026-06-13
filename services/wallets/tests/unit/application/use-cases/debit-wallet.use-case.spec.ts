@@ -35,7 +35,10 @@ describe("DebitWalletUseCase", () => {
   describe("execute", () => {
     it("should debit wallet and emit debited event", async () => {
       const userId = new UniqueEntityId();
-      const wallet = WalletFactory.build({ userId, balance: WalletFactory.createMoney(10_000n) });
+      const wallet = WalletFactory.build({
+        userId,
+        balance: WalletFactory.createMoney(10_000n)
+      });
       await walletRepository.save(wallet);
 
       await sut.execute(makeCommand(userId.toString()));
@@ -57,7 +60,10 @@ describe("DebitWalletUseCase", () => {
 
     it("should emit debit_failed when insufficient funds", async () => {
       const userId = new UniqueEntityId();
-      const wallet = WalletFactory.build({ userId, balance: WalletFactory.createMoney(500n) });
+      const wallet = WalletFactory.build({
+        userId,
+        balance: WalletFactory.createMoney(500n)
+      });
       await walletRepository.save(wallet);
 
       await sut.execute(makeCommand(userId.toString(), { amount: 1_000 }));
@@ -70,10 +76,15 @@ describe("DebitWalletUseCase", () => {
 
     it("should emit debit_failed when repository throws", async () => {
       const userId = new UniqueEntityId();
-      const wallet = WalletFactory.build({ userId, balance: WalletFactory.createMoney(10_000n) });
+      const wallet = WalletFactory.build({
+        userId,
+        balance: WalletFactory.createMoney(10_000n)
+      });
       await walletRepository.save(wallet);
 
-      spyOn(walletRepository, "save").mockRejectedValueOnce(new Error("DB error"));
+      spyOn(walletRepository, "save").mockRejectedValueOnce(
+        new Error("DB error")
+      );
 
       await sut.execute(makeCommand(userId.toString()));
 
@@ -84,7 +95,10 @@ describe("DebitWalletUseCase", () => {
 
     it("should pass correct correlationId and betId in events", async () => {
       const userId = new UniqueEntityId();
-      const wallet = WalletFactory.build({ userId, balance: WalletFactory.createMoney(10_000n) });
+      const wallet = WalletFactory.build({
+        userId,
+        balance: WalletFactory.createMoney(10_000n)
+      });
       await walletRepository.save(wallet);
 
       const command = makeCommand(userId.toString(), {

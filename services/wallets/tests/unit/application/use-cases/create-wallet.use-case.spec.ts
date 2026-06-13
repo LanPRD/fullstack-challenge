@@ -44,7 +44,9 @@ describe("CreateWalletUseCase", () => {
 
       await sut.execute({ userId });
 
-      const saved = await walletRepository.findByUserId(new UniqueEntityId(userId));
+      const saved = await walletRepository.findByUserId(
+        new UniqueEntityId(userId)
+      );
       expect(saved).not.toBeNull();
     });
 
@@ -66,7 +68,9 @@ describe("CreateWalletUseCase", () => {
         new Error("Database error")
       );
 
-      const result = await sut.execute({ userId: new UniqueEntityId().toString() });
+      const result = await sut.execute({
+        userId: new UniqueEntityId().toString()
+      });
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {

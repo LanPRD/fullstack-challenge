@@ -1,5 +1,8 @@
 import { Money, UniqueEntityId, Wallet } from "@/domain";
-import type { Prisma, Wallet as PrismaWallet } from "../prisma/generated/client";
+import type {
+  Prisma,
+  Wallet as PrismaWallet
+} from "../prisma/generated/client";
 
 export class PrismaWalletMapper {
   static toDomain(raw: PrismaWallet): Wallet {

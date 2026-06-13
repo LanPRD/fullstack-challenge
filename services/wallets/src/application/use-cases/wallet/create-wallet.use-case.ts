@@ -1,5 +1,13 @@
 import { ConflictException, InternalException } from "@/application/errors";
-import { Money, UniqueEntityId, Wallet, WalletRepository, left, right, type Either } from "@/domain";
+import {
+  Money,
+  UniqueEntityId,
+  Wallet,
+  WalletRepository,
+  left,
+  right,
+  type Either
+} from "@/domain";
 import { Injectable, Logger } from "@nestjs/common";
 
 interface CreateWalletInput {
@@ -15,17 +23,28 @@ export class CreateWalletUseCase {
 
   constructor(private readonly walletRepository: WalletRepository) {}
 
-  async execute({ userId, initialBalanceCents = 0 }: CreateWalletInput): Promise<CreateWalletOutput> {
-    const existing = await this.walletRepository.findByUserId(new UniqueEntityId(userId));
+  async execute({
+    userId,
+    initialBalanceCents = 0
+  }: CreateWalletInput): Promise<CreateWalletOutput> {
+    const existing = await this.walletRepository.findByUserId(
+      new UniqueEntityId(userId)
+    );
 
     if (existing) {
-      return left(new ConflictException({ message: "Wallet already exists for this user" }));
+      return left(
+        new ConflictException({
+          message: "Wallet already exists for this user"
+        })
+      );
     }
 
     const balanceResult = Money.fromCents(BigInt(initialBalanceCents));
 
     if (balanceResult.isLeft()) {
-      return left(new InternalException({ message: "Invalid initial balance" }));
+      return left(
+        new InternalException({ message: "Invalid initial balance" })
+      );
     }
 
     const wallet = Wallet.create({
