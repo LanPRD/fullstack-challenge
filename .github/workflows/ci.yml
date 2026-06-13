@@ -48,6 +48,30 @@ jobs:
         working-directory: frontend
 
   # ---------------------------------------------------------------------------
+  # Type check (games and wallets run in parallel via matrix)
+  # ---------------------------------------------------------------------------
+  typecheck:
+    name: Typecheck (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [games, wallets]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Typecheck
+        run: bun run typecheck
+        working-directory: services/${{ matrix.service }}
+
+  # ---------------------------------------------------------------------------
   # Unit tests (games and wallets run in parallel via matrix)
   # ---------------------------------------------------------------------------
   unit:
@@ -98,7 +122,7 @@ jobs:
   e2e:
     name: E2E Tests (games)
     runs-on: ubuntu-latest
-    needs: [lint, unit, build]
+    needs: [lint, typecheck, unit, build]
 
     services:
       postgres:
