@@ -1,5 +1,3 @@
-const { reactPrettier } = require("@prdev-solutions/eslint-config/prettier.cjs");
+const { reactPrettier } = require("@crash/eslint-config/prettier.cjs");
 
-module.exports = {
-  ...reactPrettier
-};
+module.exports = { ...reactPrettier };

@@ -37,11 +37,12 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "socket.io": "^4.8.3",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "@crash/events": "workspace:*"
   },
   "devDependencies": {
     "@nestjs/testing": "^11.1.17",
-    "@prdev-solutions/eslint-config": "^2.6.3",
+    "@crash/eslint-config": "workspace:*",
     "@types/node": "^25.5.0",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^7.2.0",

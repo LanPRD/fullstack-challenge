@@ -24,7 +24,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
-    "@prdev-solutions/eslint-config": "^2.6.3",
+    "@crash/eslint-config": "workspace:*",
     "@tailwindcss/vite": "^4.1.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",

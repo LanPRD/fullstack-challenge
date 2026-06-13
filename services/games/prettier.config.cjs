@@ -1,5 +1,3 @@
-const { nodePrettier } = require("@prdev-solutions/eslint-config/prettier.cjs");
+const { nodePrettier } = require("@crash/eslint-config/prettier.cjs");
 
-module.exports = {
-  ...nodePrettier,
-};
+module.exports = { ...nodePrettier };

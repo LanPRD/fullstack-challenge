@@ -1,8 +1,3 @@
-import ReactConfig from "@prdev-solutions/eslint-config/react.mjs";
+import config from "@crash/eslint-config/react.mjs";
 
-export default [
-  ...ReactConfig,
-  {
-    ignores: ["dist/**"]
-  }
-];
+export default config;

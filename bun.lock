@@ -24,7 +24,7 @@
         "zustand": "^5.0.0",
       },
       "devDependencies": {
-        "@prdev-solutions/eslint-config": "^2.6.3",
+        "@crash/eslint-config": "workspace:*",
         "@tailwindcss/vite": "^4.1.0",
         "@types/react": "^18.3.3",
         "@types/react-dom": "^18.3.0",
@@ -36,10 +36,22 @@
         "vite": "^5.3.4",
       },
     },
+    "packages/eslint-config": {
+      "name": "@crash/eslint-config",
+      "version": "0.0.1",
+      "dependencies": {
+        "@prdev-solutions/eslint-config": "^2.6.3",
+      },
+    },
+    "packages/events": {
+      "name": "@crash/events",
+      "version": "0.0.1",
+    },
     "services/games": {
       "name": "@crash/games",
       "version": "0.0.1",
       "dependencies": {
+        "@crash/events": "workspace:*",
         "@nestjs/common": "^11.1.17",
         "@nestjs/config": "^4.0.3",
         "@nestjs/core": "^11.1.17",
@@ -68,8 +80,8 @@
         "zod": "^4.3.6",
       },
       "devDependencies": {
+        "@crash/eslint-config": "workspace:*",
         "@nestjs/testing": "^11.1.17",
-        "@prdev-solutions/eslint-config": "^2.6.3",
         "@types/node": "^25.5.0",
         "@types/passport-jwt": "^4.0.1",
         "@types/supertest": "^7.2.0",
@@ -85,6 +97,7 @@
       "name": "@crash/wallets",
       "version": "0.0.1",
       "dependencies": {
+        "@crash/events": "workspace:*",
         "@nestjs/common": "^11.1.17",
         "@nestjs/config": "^4.0.4",
         "@nestjs/core": "^11.1.17",
@@ -109,8 +122,8 @@
         "zod": "^4.4.3",
       },
       "devDependencies": {
+        "@crash/eslint-config": "workspace:*",
         "@nestjs/testing": "^11.1.26",
-        "@prdev-solutions/eslint-config": "^2.6.3",
         "@types/passport-jwt": "^4.0.1",
         "@types/supertest": "^7.2.0",
         "bun-types": "latest",
@@ -162,6 +175,10 @@
     "@babel/types": ["@babel/types@7.29.7", "", { "dependencies": { "@babel/helper-string-parser": "^7.29.7", "@babel/helper-validator-identifier": "^7.29.7" } }, "sha512-4zBIxpPzowiZpusoFkyGVwakdRJUyuH5PxQ/PrqghfdFWWasvnCdPfQXHrenDai+gyLARulZjZowCOj6fjT4pA=="],
 
     "@borewit/text-codec": ["@borewit/text-codec@0.2.2", "", {}, "sha512-DDaRehssg1aNrH4+2hnj1B7vnUGEjU6OIlyRdkMd0aUdIUvKXrJfXsy8LVtXAy7DRvYVluWbMspsRhz2lcW0mQ=="],
+
+    "@crash/eslint-config": ["@crash/eslint-config@workspace:packages/eslint-config"],
+
+    "@crash/events": ["@crash/events@workspace:packages/events"],
 
     "@crash/games": ["@crash/games@workspace:services/games"],
 

@@ -1,0 +1,13 @@
+{
+  "name": "@crash/eslint-config",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./node.mjs": "./node.mjs",
+    "./react.mjs": "./react.mjs",
+    "./prettier.cjs": "./prettier.cjs"
+  },
+  "dependencies": {
+    "@prdev-solutions/eslint-config": "^2.6.3"
+  }
+}
