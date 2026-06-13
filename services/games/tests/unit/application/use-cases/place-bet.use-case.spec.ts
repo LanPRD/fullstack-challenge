@@ -202,7 +202,9 @@ describe("PlaceBetUseCase", () => {
       const round = createActiveRound();
       roundRepository.save(round);
 
-      walletClient.debit = mock(() => Promise.resolve({ success: false, reason: "insufficient_funds" }));
+      walletClient.debit = mock(() =>
+        Promise.resolve({ success: false, reason: "insufficient_funds" })
+      );
 
       const result = await sut.execute({
         userId: "user-123",
@@ -228,13 +230,21 @@ describe("PlaceBetUseCase", () => {
       roundRepository.save(round);
 
       // First bet fails (insufficient funds)
-      walletClient.debit = mock(() => Promise.resolve({ success: false, reason: "insufficient_funds" }));
-      const firstResult = await sut.execute({ userId: userId.toString(), amount: 1000 });
+      walletClient.debit = mock(() =>
+        Promise.resolve({ success: false, reason: "insufficient_funds" })
+      );
+      const firstResult = await sut.execute({
+        userId: userId.toString(),
+        amount: 1000
+      });
       expect(firstResult.isLeft()).toBe(true);
 
       // Second bet succeeds
       walletClient.debit = mock(() => Promise.resolve({ success: true }));
-      const secondResult = await sut.execute({ userId: userId.toString(), amount: 1000 });
+      const secondResult = await sut.execute({
+        userId: userId.toString(),
+        amount: 1000
+      });
       expect(secondResult.isRight()).toBe(true);
     });
 
