@@ -23,7 +23,6 @@ import { GamesEventService } from "./games-event.service";
       }
     ])
   ],
-  controllers: [GameCommandsController],
   providers: [GamesEventService],
   exports: [GamesEventService]
 })

@@ -1,6 +1,6 @@
 import { Money, UniqueEntityId, WalletRepository } from "@/domain";
 import type { CreditWalletCommand } from "@/infrastructure/messaging/contracts/commands";
-import type { GamesEventService } from "@/infrastructure/messaging/games-event.service";
+import { GamesEventService } from "@/infrastructure/messaging/games-event.service";
 import { Injectable, Logger } from "@nestjs/common";
 
 @Injectable()
