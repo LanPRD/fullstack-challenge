@@ -49,10 +49,10 @@ class MockAuthGuard {
 
 class MockWalletClientService {
   async debit() {
-    return "mock-correlation-id";
+    return { success: true };
   }
   async credit() {
-    return "mock-correlation-id";
+    return { success: true };
   }
 }
 
