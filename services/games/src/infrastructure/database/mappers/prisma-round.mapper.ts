@@ -44,7 +44,7 @@ export class PrismaRoundMapper {
   static toPrisma(round: Round): Prisma.RoundUncheckedCreateInput {
     return {
       id: round.id.toString(),
-      status: round.status as PrismaRoundStatus,
+      status: round.status,
       serverSeed: round.provablyFair.serverSeed,
       serverSeedHash: round.provablyFair.serverSeedHash,
       crashPoint: round.crashPoint,
