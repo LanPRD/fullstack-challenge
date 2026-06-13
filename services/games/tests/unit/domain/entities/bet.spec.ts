@@ -111,6 +111,35 @@ describe("Bet", () => {
     });
   });
 
+  describe("cancel", () => {
+    it("should cancel a pending bet", () => {
+      const bet = Bet.create({
+        userId: new UniqueEntityId(),
+        roundId: new UniqueEntityId(),
+        amount: createMoney(1000n)
+      });
+
+      bet.cancel();
+
+      expect(bet.status).toBe(BetStatus.CANCELLED);
+      expect(bet.isCancelled).toBe(true);
+      expect(bet.isPending).toBe(false);
+    });
+
+    it("should not alter cashoutMultiplier or payout when cancelled", () => {
+      const bet = Bet.create({
+        userId: new UniqueEntityId(),
+        roundId: new UniqueEntityId(),
+        amount: createMoney(1000n)
+      });
+
+      bet.cancel();
+
+      expect(bet.cashoutMultiplier).toBeNull();
+      expect(bet.payout).toBeNull();
+    });
+  });
+
   describe("amount setter", () => {
     it("should update amount", () => {
       const bet = Bet.create({
