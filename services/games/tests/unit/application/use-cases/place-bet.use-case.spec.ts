@@ -20,8 +20,8 @@ describe("PlaceBetUseCase", () => {
     roundRepository = new InMemoryRoundRepository();
     eventEmitter = { emit: mock(() => true) } as unknown as EventEmitter2;
     walletClient = {
-      debit: mock(() => Promise.resolve("mock-correlation-id")),
-      credit: mock(() => Promise.resolve("mock-correlation-id"))
+      debit: mock(() => Promise.resolve({ success: true })),
+      credit: mock(() => Promise.resolve({ success: true }))
     } as unknown as WalletClientService;
     sut = new PlaceBetUseCase(roundRepository, eventEmitter, walletClient);
   });
@@ -196,6 +196,46 @@ describe("PlaceBetUseCase", () => {
       });
 
       expect(result.isRight()).toBe(true);
+    });
+
+    it("should return error when wallet has insufficient funds", async () => {
+      const round = createActiveRound();
+      roundRepository.save(round);
+
+      walletClient.debit = mock(() => Promise.resolve({ success: false, reason: "insufficient_funds" }));
+
+      const result = await sut.execute({
+        userId: "user-123",
+        amount: 1000
+      });
+
+      expect(result.isLeft()).toBe(true);
+
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(BadRequestException);
+        expect(result.value.message).toContain("Insufficient funds");
+      }
+
+      // Bet should be cancelled in the round
+      const savedRound = await roundRepository.findCurrent();
+      expect(savedRound?.bets).toHaveLength(1);
+      expect(savedRound?.bets[0]?.isCancelled).toBe(true);
+    });
+
+    it("should allow placing a bet after a previous cancelled bet", async () => {
+      const round = createActiveRound();
+      const userId = new UniqueEntityId();
+      roundRepository.save(round);
+
+      // First bet fails (insufficient funds)
+      walletClient.debit = mock(() => Promise.resolve({ success: false, reason: "insufficient_funds" }));
+      const firstResult = await sut.execute({ userId: userId.toString(), amount: 1000 });
+      expect(firstResult.isLeft()).toBe(true);
+
+      // Second bet succeeds
+      walletClient.debit = mock(() => Promise.resolve({ success: true }));
+      const secondResult = await sut.execute({ userId: userId.toString(), amount: 1000 });
+      expect(secondResult.isRight()).toBe(true);
     });
 
     it("should allow multiple users to place bets", async () => {

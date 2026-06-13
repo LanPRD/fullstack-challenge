@@ -1,17 +1,20 @@
 import { CancelBetUseCase } from "@/application/use-cases/round/cancel-bet.use-case";
 import { BetStatus, UniqueEntityId } from "@/domain";
 import type { WalletDebitFailedEvent } from "@/infrastructure/messaging/contracts/events";
-import { beforeEach, describe, expect, it, spyOn } from "bun:test";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import { BetFactory } from "../../../factories/bet-factory";
 import { InMemoryBetRepository } from "../../../repositories";
 
 describe("CancelBetUseCase", () => {
   let sut: CancelBetUseCase;
   let betRepository: InMemoryBetRepository;
+  let eventEmitter: EventEmitter2;
 
   beforeEach(() => {
     betRepository = new InMemoryBetRepository();
-    sut = new CancelBetUseCase(betRepository);
+    eventEmitter = { emit: mock(() => true) } as unknown as EventEmitter2;
+    sut = new CancelBetUseCase(betRepository, eventEmitter);
   });
 
   function makeEvent(

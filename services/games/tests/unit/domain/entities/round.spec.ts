@@ -110,6 +110,23 @@ describe("Round", () => {
       }
     });
 
+    it("should allow a player to bet after their previous bet was cancelled", () => {
+      const round = Round.create({ startedAt: new Date() });
+      const userId = new UniqueEntityId();
+      const amount = createMoney(1000n);
+
+      const firstBetResult = round.placeBet(userId, amount);
+      expect(firstBetResult.isRight()).toBe(true);
+
+      if (firstBetResult.isRight()) {
+        firstBetResult.value.cancel();
+      }
+
+      const secondBetResult = round.placeBet(userId, createMoney(500n));
+      expect(secondBetResult.isRight()).toBe(true);
+      expect(round.bets).toHaveLength(2);
+    });
+
     it("should allow multiple players to bet", () => {
       const round = Round.create({ startedAt: new Date() });
       const user1 = new UniqueEntityId();
