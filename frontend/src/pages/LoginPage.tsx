@@ -2,10 +2,7 @@ import keycloak from "@/lib/keycloak";
 
 export function LoginPage() {
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center"
-      style={{ background: "#07070f" }}
-    >
+    <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: "#07070f" }}>
       {/* Logo / Title */}
       <div className="text-center mb-12">
         <div className="text-6xl mb-4">🚀</div>
@@ -41,8 +38,7 @@ export function LoginPage() {
         </button>
 
         <p className="text-center text-xs text-gray-600">
-          Credenciais de teste:{" "}
-          <span className="font-mono text-gray-500">player / player123</span>
+          Credenciais de teste: <span className="font-mono text-gray-500">player / player123</span>
         </p>
       </div>
 

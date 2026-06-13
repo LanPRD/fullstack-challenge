@@ -3,7 +3,7 @@ import { useWallet } from "@/hooks/useWallet";
 import keycloak from "@/lib/keycloak";
 
 export function PlayerInfo() {
-  const user = useAuthStore((s) => s.user);
+  const user = useAuthStore(s => s.user);
   const { data: wallet, isLoading } = useWallet();
 
   return (
@@ -14,15 +14,13 @@ export function PlayerInfo() {
         style={{ background: "#0f0f1a", border: "1px solid #2a2a4a" }}
       >
         <span className="text-xs text-gray-500">Saldo</span>
-        {isLoading ? (
+        {isLoading ?
           <div className="w-16 h-4 rounded animate-pulse" style={{ background: "#2a2a4a" }} />
-        ) : wallet != null ? (
+        : wallet !== null ?
           <span className="font-mono font-bold text-sm" style={{ color: "#00ff88" }}>
             R${wallet.balance.toFixed(2)}
           </span>
-        ) : (
-          <span className="text-xs text-gray-500">—</span>
-        )}
+        : <span className="text-xs text-gray-500">—</span>}
       </div>
 
       {/* Username */}

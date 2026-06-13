@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview --port 3000"
+    "preview": "vite preview --port 3000",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "prettier:check": "bunx prettier --check .",
+    "prettier:fix": "bunx prettier --write ."
   },
   "dependencies": {
     "@tanstack/react-query": "^5.51.21",
@@ -21,10 +24,13 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@prdev-solutions/eslint-config": "^2.6.3",
     "@tailwindcss/vite": "^4.1.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "9.39.4",
+    "prettier": "^3.8.1",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.5.3",
     "vite": "^5.3.4"

@@ -12,8 +12,7 @@ import { useEffect } from "react";
 export function GamePage() {
   useGame();
 
-  const { phase, multiplier, dataPoints, serverSeedHash, crashPoint, initFromCurrentRound } =
-    useGameStore();
+  const { phase, multiplier, dataPoints, serverSeedHash, crashPoint, initFromCurrentRound } = useGameStore();
 
   // Bootstrap: fetch current round on mount
   const { data: currentRound } = useQuery({
@@ -45,10 +44,7 @@ export function GamePage() {
       >
         <div className="flex items-center gap-2">
           <span className="text-xl">🚀</span>
-          <span
-            className="font-black text-lg tracking-tight"
-            style={{ color: "#00ff88" }}
-          >
+          <span className="font-black text-lg tracking-tight" style={{ color: "#00ff88" }}>
             CRASH
           </span>
         </div>

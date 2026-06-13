@@ -18,23 +18,23 @@ const queryClient = new QueryClient({
 
 function AuthGate() {
   const [status, setStatus] = useState<"loading" | "authenticated" | "anonymous">("loading");
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const setAuth = useAuthStore(s => s.setAuth);
 
   useEffect(() => {
-    keycloak
-      .init({
-        onLoad: "check-sso",
-        pkceMethod: "S256",
-        silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`
-      })
-      .then((authenticated) => {
+    const init = async () => {
+      try {
+        const authenticated = await keycloak.init({
+          onLoad: "check-sso",
+          pkceMethod: "S256",
+          silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`
+        });
+
         if (authenticated && keycloak.token && keycloak.tokenParsed) {
           setAuthToken(keycloak.token);
           setAuth(
             {
               id: keycloak.tokenParsed.sub ?? "",
-              username:
-                (keycloak.tokenParsed as Record<string, string>)["preferred_username"] ?? "",
+              username: (keycloak.tokenParsed as Record<string, string>)["preferred_username"] ?? "",
               email: (keycloak.tokenParsed as Record<string, string>)["email"] ?? ""
             },
             keycloak.token
@@ -43,26 +43,25 @@ function AuthGate() {
         } else {
           setStatus("anonymous");
         }
-      })
-      .catch(() => setStatus("anonymous"));
+      } catch {
+        setStatus("anonymous");
+      }
+    };
+
+    void init();
 
     keycloak.onTokenExpired = () => {
-      keycloak.updateToken(30).catch(() => keycloak.logout());
+      void keycloak.updateToken(30).catch(() => keycloak.logout());
     };
 
     keycloak.onAuthRefreshSuccess = () => {
-      if (keycloak.token) {
-        setAuthToken(keycloak.token);
-      }
+      if (keycloak.token) setAuthToken(keycloak.token);
     };
   }, [setAuth]);
 
   if (status === "loading") {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "#07070f" }}
-      >
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#07070f" }}>
         <div className="flex flex-col items-center gap-4">
           <div
             className="w-12 h-12 rounded-full border-4 border-t-transparent animate-spin"

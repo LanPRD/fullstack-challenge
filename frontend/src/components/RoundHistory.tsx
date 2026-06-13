@@ -21,7 +21,11 @@ function CrashChip({ point }: { point: number }) {
   return (
     <div
       className="flex items-center justify-center rounded px-2 py-1 font-mono text-sm font-bold"
-      style={{ background: `${color}1a`, color, border: `1px solid ${color}44` }}
+      style={{
+        background: `${color}1a`,
+        color,
+        border: `1px solid ${color}44`
+      }}
     >
       {point.toFixed(2)}×
     </div>
@@ -29,7 +33,7 @@ function CrashChip({ point }: { point: number }) {
 }
 
 export function RoundHistory() {
-  const liveHistory = useGameStore((s) => s.roundHistory);
+  const liveHistory = useGameStore(s => s.roundHistory);
 
   const { data } = useQuery({
     queryKey: ["rounds-history"],
@@ -42,30 +46,24 @@ export function RoundHistory() {
 
   // Merge: live (recent) + REST (older), deduplicate
   const merged = (() => {
-    const liveIds = new Set(liveHistory.map((r) => r.roundId));
+    const liveIds = new Set(liveHistory.map(r => r.roundId));
     const restItems = (data ?? [])
-      .filter((r) => !liveIds.has(r.id) && r.crashPoint != null)
-      .map((r) => ({ roundId: r.id, crashPoint: r.crashPoint! }));
+      .filter(r => !liveIds.has(r.id) && r.crashPoint !== null)
+      .map(r => ({ roundId: r.id, crashPoint: r.crashPoint! }));
     return [...liveHistory, ...restItems].slice(0, 20);
   })();
 
   return (
-    <div
-      className="rounded-xl p-4"
-      style={{ background: "#0f0f1a", border: "1px solid #2a2a4a" }}
-    >
-      <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
-        Histórico
-      </h2>
-      {merged.length === 0 ? (
+    <div className="rounded-xl p-4" style={{ background: "#0f0f1a", border: "1px solid #2a2a4a" }}>
+      <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Histórico</h2>
+      {merged.length === 0 ?
         <div className="text-center text-gray-600 text-sm py-2">Sem histórico</div>
-      ) : (
-        <div className="flex flex-wrap gap-2">
-          {merged.map((r) => (
+      : <div className="flex flex-wrap gap-2">
+          {merged.map(r => (
             <CrashChip key={r.roundId} point={r.crashPoint} />
           ))}
         </div>
-      )}
+      }
     </div>
   );
 }
