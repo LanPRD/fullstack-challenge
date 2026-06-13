@@ -15,9 +15,15 @@ export function PlayerInfo() {
       >
         <span className="text-xs text-gray-500">Saldo</span>
         {isLoading ?
-          <div className="w-16 h-4 rounded animate-pulse" style={{ background: "#2a2a4a" }} />
+          <div
+            className="w-16 h-4 rounded animate-pulse"
+            style={{ background: "#2a2a4a" }}
+          />
         : wallet != null ?
-          <span className="font-mono font-bold text-sm" style={{ color: "#00ff88" }}>
+          <span
+            className="font-mono font-bold text-sm"
+            style={{ color: "#00ff88" }}
+          >
             R${wallet.balance.toFixed(2)}
           </span>
         : <span className="text-xs text-gray-500">—</span>}

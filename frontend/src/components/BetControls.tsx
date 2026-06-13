@@ -1,4 +1,5 @@
 import api from "@/lib/api";
+import { useWallet } from "@/hooks/useWallet";
 import { type GamePhase, useGameStore } from "@/stores/gameStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -37,7 +38,11 @@ function BettingSection({
     return (
       <div
         className="w-full py-3 rounded-lg text-center font-semibold text-sm"
-        style={{ background: "#1a2a1a", color: "#00ff88", border: "1px solid #00ff8866" }}
+        style={{
+          background: "#1a2a1a",
+          color: "#00ff88",
+          border: "1px solid #00ff8866"
+        }}
       >
         ✓ Aposta de R${myBetAmount?.toFixed(2)} confirmada
       </div>
@@ -61,7 +66,10 @@ function BettingSection({
         onClick={onPlaceBet}
         disabled={!isValidAmount || isPending}
         className="w-full py-3 rounded-lg font-bold text-base uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-        style={{ background: isValidAmount ? "#00ff88" : "#1a2a1a", color: isValidAmount ? "#000" : "#4a5a4a" }}
+        style={{
+          background: isValidAmount ? "#00ff88" : "#1a2a1a",
+          color: isValidAmount ? "#000" : "#4a5a4a"
+        }}
       >
         {isPending ? "Aguardando…" : "Apostar"}
       </button>
@@ -81,17 +89,28 @@ interface StartedProps {
   onCashout: () => void;
 }
 
-function StartedSection({ hasPendingBet, potentialPayout, isPending, onCashout }: StartedProps) {
+function StartedSection({
+  hasPendingBet,
+  potentialPayout,
+  isPending,
+  onCashout
+}: StartedProps) {
   if (!hasPendingBet) {
     return (
-      <div className="w-full py-3 rounded-lg text-center text-sm" style={{ background: "#1a1a1a", color: "#6b7280" }}>
+      <div
+        className="w-full py-3 rounded-lg text-center text-sm"
+        style={{ background: "#1a1a1a", color: "#6b7280" }}
+      >
         Sem aposta nesta rodada
       </div>
     );
   }
   return (
     <div className="flex flex-col gap-2">
-      <div className="text-center text-sm rounded-lg py-2" style={{ background: "#16162a", color: "#94a3b8" }}>
+      <div
+        className="text-center text-sm rounded-lg py-2"
+        style={{ background: "#16162a", color: "#94a3b8" }}
+      >
         Payout atual:{" "}
         <span className="font-mono font-bold" style={{ color: "#00ff88" }}>
           R${potentialPayout.toFixed(2)}
@@ -124,7 +143,10 @@ function CrashedSection({ hasPendingBet }: { hasPendingBet: boolean }) {
   );
 }
 
-function PhaseContent({ phase, ...rest }: { phase: GamePhase } & BettingProps & StartedProps) {
+function PhaseContent({
+  phase,
+  ...rest
+}: { phase: GamePhase } & BettingProps & StartedProps) {
   if (phase === "BETTING") return <BettingSection {...rest} />;
   if (phase === "STARTED")
     return (
@@ -135,12 +157,21 @@ function PhaseContent({ phase, ...rest }: { phase: GamePhase } & BettingProps & 
         onCashout={rest.onCashout}
       />
     );
-  if (phase === "CRASHED") return <CrashedSection hasPendingBet={rest.hasPendingBet} />;
+  if (phase === "CRASHED")
+    return <CrashedSection hasPendingBet={rest.hasPendingBet} />;
   return null;
 }
 
 export function BetControls() {
-  const { phase, bettingEndsAt, multiplier, myBetId, myBetAmount, setMyBet, clearMyBet } = useGameStore();
+  const {
+    phase,
+    bettingEndsAt,
+    multiplier,
+    myBetId,
+    myBetAmount,
+    setMyBet,
+    clearMyBet
+  } = useGameStore();
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState("10.00");
   const [timeLeft, setTimeLeft] = useState(0);
@@ -159,7 +190,9 @@ export function BetControls() {
 
   const placeBet = useMutation({
     mutationFn: async (betAmount: number) => {
-      const res = await api.post<{ id: string; amount: number }>("/games/bet", { amount: betAmount });
+      const res = await api.post<{ id: string; amount: number }>("/games/bet", {
+        amount: betAmount
+      });
       return res.data;
     },
     onSuccess: data => {
@@ -171,39 +204,60 @@ export function BetControls() {
 
   const cashout = useMutation({
     mutationFn: async () => {
-      const res = await api.post<{ payout: number; cashoutMultiplier: number }>("/games/bet/cashout");
+      const res = await api.post<{ payout: number; cashoutMultiplier: number }>(
+        "/games/bet/cashout"
+      );
       return res.data;
     },
     onSuccess: data => {
       void queryClient.invalidateQueries({ queryKey: ["wallet"] });
       clearMyBet();
-      toast.success(`Cash out em ${data.cashoutMultiplier.toFixed(2)}× → R$${data.payout.toFixed(2)}!`, {
-        duration: 5000
-      });
+      toast.success(
+        `Cash out em ${data.cashoutMultiplier.toFixed(2)}× → R$${data.payout.toFixed(2)}!`,
+        {
+          duration: 5000
+        }
+      );
     },
     onError: err => toast.error(getErrorMessage(err))
   });
 
+  const { data: wallet } = useWallet();
   const parsedAmount = parseFloat(amount);
-  const isValidAmount = !isNaN(parsedAmount) && parsedAmount >= 1 && parsedAmount <= 1000;
+  const hasEnoughBalance = wallet == null || parsedAmount <= wallet.balance;
+  const isValidAmount =
+    !isNaN(parsedAmount) &&
+    parsedAmount >= 1 &&
+    parsedAmount <= 1000 &&
+    hasEnoughBalance;
   const hasPendingBet = !!myBetId;
   const potentialPayout = myBetAmount !== null ? myBetAmount * multiplier : 0;
 
   return (
-    <div className="rounded-xl p-4 flex flex-col gap-3" style={{ background: "#0f0f1a", border: "1px solid #2a2a4a" }}>
+    <div
+      className="rounded-xl p-4 flex flex-col gap-3"
+      style={{ background: "#0f0f1a", border: "1px solid #2a2a4a" }}
+    >
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Aposta</h2>
+        <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">
+          Aposta
+        </h2>
         {phase === "BETTING" && bettingEndsAt && (
           <span
             className="text-xs font-mono font-bold px-2 py-0.5 rounded"
-            style={{ color: timeLeft <= 3 ? "#ef4444" : "#facc15", background: "#1a1a2e" }}
+            style={{
+              color: timeLeft <= 3 ? "#ef4444" : "#facc15",
+              background: "#1a1a2e"
+            }}
           >
             {timeLeft}s
           </span>
         )}
       </div>
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">R$</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+          R$
+        </span>
         <input
           type="number"
           min="1"
@@ -224,7 +278,7 @@ export function BetControls() {
         hasPendingBet={hasPendingBet}
         myBetAmount={myBetAmount}
         isPending={placeBet.isPending || cashout.isPending}
-        onPlaceBet={() => placeBet.mutate(parsedAmount)}
+        onPlaceBet={() => placeBet.mutate(Math.round(parsedAmount * 100))}
         potentialPayout={potentialPayout}
         onCashout={() => cashout.mutate()}
       />
