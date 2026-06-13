@@ -9,7 +9,8 @@
     "test:e2e": "bun test tests/e2e",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "prettier:check": "bunx prettier --check .",
-    "prettier:fix": "bunx prettier --write ."
+    "prettier:fix": "bunx prettier --write .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@crash/events": "workspace:*",
@@ -38,8 +39,9 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@nestjs/testing": "^11.1.26",
     "@crash/eslint-config": "workspace:*",
+    "@nestjs/testing": "^11.1.26",
+    "@types/node": "^25.9.3",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^7.2.0",
     "bun-types": "latest",
