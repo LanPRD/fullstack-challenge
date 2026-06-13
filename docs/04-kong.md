@@ -4,7 +4,7 @@
 
 Kong é um API Gateway: um ponto único de entrada para todas as requisições do frontend. Em vez de o frontend saber que existe um serviço de games na porta 4001 e um de wallets na porta 4002, ele só conhece uma URL — a do Kong (porta 8000).
 
-```
+```text
 Frontend (3000)
       |
       v
@@ -14,6 +14,7 @@ Frontend (3000)
 ```
 
 Vantagens além do roteamento:
+
 - Rate limiting, autenticação, logs, CORS — configurados uma vez no gateway, valem para todos os serviços
 - Os serviços ficam inacessíveis diretamente (sem portas expostas em produção)
 - Facilita versionar APIs (`/v1/games`, `/v2/games`) sem mudar os serviços
@@ -28,8 +29,8 @@ Kong tem dois modos: com banco de dados (configuração via API REST) e **DB-les
 # docker-compose.yml
 kong:
   environment:
-    KONG_DATABASE: "off"                            # desativa banco de dados
-    KONG_DECLARATIVE_CONFIG: /kong/kong.yml         # lê config do arquivo
+    KONG_DATABASE: "off" # desativa banco de dados
+    KONG_DECLARATIVE_CONFIG: /kong/kong.yml # lê config do arquivo
   volumes:
     - ./docker/kong:/kong:ro
 ```
@@ -45,12 +46,12 @@ _format_version: "3.0"
 
 services:
   - name: games-service
-    url: http://games:4001          # nome do container no docker-compose como hostname
+    url: http://games:4001 # nome do container no docker-compose como hostname
     routes:
       - name: games-routes
         paths:
           - /games
-        strip_path: true            # remove /games antes de encaminhar
+        strip_path: true # remove /games antes de encaminhar
 
   - name: wallets-service
     url: http://wallets:4002
@@ -63,7 +64,7 @@ services:
 
 ### O que `strip_path: true` faz
 
-```
+```text
 Request do frontend:   GET http://localhost:8000/games/bet
 Kong encaminha como:   GET http://games:4001/bet
 ```
@@ -78,15 +79,15 @@ Dentro de uma rede Docker Compose, os containers se resolvem pelo nome do servi�
 
 ## Diagrama de rede completo
 
-```
+```text
                     ┌─────────────────────────────┐
-                    │        Docker network        │
-                    │                              │
+                    │        Docker network       │
+                    │                             │
 Browser ──8000──> Kong ──4001──> games            │
-                    │    ──4002──> wallets         │
-                    │    ──8080──> keycloak        │
-                    │    ──5432──> postgres        │
-                    │    ──5672──> rabbitmq        │
+                    │    ──4002──> wallets        │
+                    │    ──8080──> keycloak       │
+                    │    ──5432──> postgres       │
+                    │    ──5672──> rabbitmq       │
                     └─────────────────────────────┘
 ```
 
@@ -98,14 +99,14 @@ Em produção, só a porta 8000 do Kong (e 3000 do frontend) ficaria pública. P
 
 Kong tem um ecossistema de plugins. Os mais usados:
 
-| Plugin | O que faz |
-|---|---|
-| `rate-limiting` | Limita requests por IP/consumer |
-| `jwt` | Valida tokens JWT no gateway (antes de chegar no serviço) |
-| `cors` | Adiciona headers CORS |
-| `request-transformer` | Modifica headers e body das requisições |
-| `response-transformer` | Modifica a resposta antes de enviar ao cliente |
-| `proxy-cache` | Cache de respostas |
+| Plugin                 | O que faz                                                 |
+| ---------------------- | --------------------------------------------------------- |
+| `rate-limiting`        | Limita requests por IP/consumer                           |
+| `jwt`                  | Valida tokens JWT no gateway (antes de chegar no serviço) |
+| `cors`                 | Adiciona headers CORS                                     |
+| `request-transformer`  | Modifica headers e body das requisições                   |
+| `response-transformer` | Modifica a resposta antes de enviar ao cliente            |
+| `proxy-cache`          | Cache de respostas                                        |
 
 Exemplo de como adicionar rate limiting via kong.yml:
 

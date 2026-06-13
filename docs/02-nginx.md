@@ -41,7 +41,7 @@ server {
 
 ### O que `try_files $uri $uri/ /index.html` faz
 
-```
+```text
 Requisição: GET /game
 
 1. Tenta servir o arquivo  → /usr/share/nginx/html/game        (não existe)
@@ -53,11 +53,11 @@ O browser recebe o `index.html`, o React hidrata e o React Router lê a URL atua
 
 ### Cache Strategy
 
-| Tipo de arquivo | Cache | Motivo |
-|---|---|---|
-| `index.html` | Nenhum (padrão Nginx) | Precisa estar sempre atualizado |
-| `*.js`, `*.css` (com hash) | 1 ano, imutável | Nome muda a cada deploy, pode cachear para sempre |
-| Imagens, fontes | 1 ano, imutável | Raramente mudam |
+| Tipo de arquivo            | Cache                 | Motivo                                            |
+| -------------------------- | --------------------- | ------------------------------------------------- |
+| `index.html`               | Nenhum (padrão Nginx) | Precisa estar sempre atualizado                   |
+| `*.js`, `*.css` (com hash) | 1 ano, imutável       | Nome muda a cada deploy, pode cachear para sempre |
+| Imagens, fontes            | 1 ano, imutável       | Raramente mudam                                   |
 
 `immutable` diz ao browser que pode usar o cache sem nem fazer requisição para verificar se mudou (sem `If-None-Match`). Isso é seguro porque o Vite garante que o hash muda quando o conteúdo muda.
 

@@ -14,29 +14,51 @@ Um Dockerfile é executado de cima para baixo. Cada instrução cria uma **layer
 
 ### Serviço Node/Bun (backend)
 
+Este projeto usa Bun Workspaces. O `bun install` precisa conhecer todos os `package.json` do monorepo para resolver referências `workspace:*` — por isso o build context é a **raiz** do projeto, não a pasta do serviço.
+
 ```dockerfile
 # services/games/Dockerfile
 
-FROM oven/bun:1-alpine      # imagem base: Bun em Alpine Linux (~50 MB)
+FROM oven/bun:1-alpine
+WORKDIR /app
 
-WORKDIR /app                # diretório de trabalho dentro do container
+# Copia todos os manifests do monorepo ANTES do código
+# Necessário porque bun install precisa resolver workspace:*
+COPY package.json bun.lock ./
+COPY packages/events/package.json     ./packages/events/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY services/games/package.json      ./services/games/
+COPY services/wallets/package.json    ./services/wallets/
+COPY frontend/package.json            ./frontend/
+RUN bun install                       # layer cacheada enquanto os manifests não mudam
 
-COPY package.json ./        # copia só o manifesto PRIMEIRO
-RUN bun install             # instala dependências (layer cacheada)
+# Copia o código-fonte
+COPY packages/events/src              ./packages/events/src
+COPY services/games/src               ./services/games/src
+COPY services/games/prisma            ./services/games/prisma
+COPY services/games/tsconfig.json     ./services/games/
+COPY services/games/prisma.config.ts  ./services/games/
 
-COPY . .                    # copia o restante do código
-
-EXPOSE 4001                 # documenta a porta (não abre nada por si só)
-
-CMD ["bun", "run", "src/main.ts"]   # comando executado ao subir o container
+WORKDIR /app/services/games
+EXPOSE 4001
+CMD ["sh", "-c", "bunx prisma migrate deploy && bun run src/main.ts"]
 ```
 
-**Por que copiar `package.json` antes do código?**
-O Docker re-executa uma camada apenas quando ela ou as anteriores mudam. Se você copiar tudo de uma vez, qualquer mudança de código força o `bun install` de novo. Separando as duas etapas, o `bun install` só roda quando as dependências mudam.
+**Por que copiar tantos `package.json` separados?**
+O Docker re-executa uma camada apenas quando ela ou as anteriores mudam. Copiando só os manifests primeiro, o `bun install` (camada cara) só roda quando dependências mudam — não a cada mudança de código.
+
+O `build context` no `docker-compose.yml` deve ser `.` (raiz) para que esses arquivos existam:
+
+```yaml
+games:
+  build:
+    context: .                          # raiz do monorepo
+    dockerfile: services/games/Dockerfile
+```
 
 ### Frontend — multi-stage build
 
-O frontend usa dois estágios. O primeiro compila os assets, o segundo serve apenas o resultado estático — sem Node, sem código-fonte, sem devDependencies na imagem final.
+O frontend usa dois estágios. O primeiro compila os assets, o segundo serve apenas o resultado estático — sem Node, sem código-fonte, sem devDependencies na imagem final. O mesmo padrão de múltiplos `package.json` se aplica aqui.
 
 ```dockerfile
 # frontend/Dockerfile
@@ -44,15 +66,27 @@ O frontend usa dois estágios. O primeiro compila os assets, o segundo serve ape
 # --- Estágio 1: build ---
 FROM oven/bun:1.3 AS builder
 WORKDIR /app
-COPY package.json ./
+COPY package.json bun.lock ./
+COPY packages/events/package.json     ./packages/events/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY services/games/package.json      ./services/games/
+COPY services/wallets/package.json    ./services/wallets/
+COPY frontend/package.json            ./frontend/
 RUN bun install
-COPY . .
-RUN bun run build           # gera /app/dist com HTML, JS e CSS minificados
+
+COPY packages/events/src              ./packages/events/src
+COPY frontend/src                     ./frontend/src
+COPY frontend/public                  ./frontend/public
+COPY frontend/index.html              ./frontend/
+COPY frontend/tsconfig.json           ./frontend/
+COPY frontend/vite.config.ts          ./frontend/
+WORKDIR /app/frontend
+RUN bun run build           # gera /app/frontend/dist com HTML, JS e CSS minificados
 
 # --- Estágio 2: serve ---
 FROM nginx:1.27-alpine      # imagem de ~10 MB, só o servidor HTTP
-COPY --from=builder /app/dist /usr/share/nginx/html   # copia os assets compilados
-COPY nginx.conf /etc/nginx/conf.d/default.conf        # configura o Nginx
+COPY --from=builder /app/frontend/dist /usr/share/nginx/html  # copia os assets compilados
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf       # configura o Nginx
 EXPOSE 3000
 CMD ["nginx", "-g", "daemon off;"]
 ```
@@ -70,14 +104,14 @@ services:
   postgres:
     image: postgres:18.3-alpine
     ports:
-      - "5432:5432"             # host:container
+      - "5432:5432" # host:container
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: postgres
-      POSTGRES_EXTRA_DATABASES: games,wallets    # variável customizada (lida pelo init script)
+      POSTGRES_EXTRA_DATABASES: games,wallets # variável customizada (lida pelo init script)
     volumes:
-      - postgres_data:/var/lib/postgresql/data                         # dados persistentes
+      - postgres_data:/var/lib/postgresql/data # dados persistentes
       - ./docker/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin"]
@@ -86,30 +120,42 @@ services:
 
   games:
     build:
-      context: ./services/games   # pasta onde está o Dockerfile
-      dockerfile: Dockerfile
+      context: .                            # raiz do monorepo (necessário para workspace:*)
+      dockerfile: services/games/Dockerfile
     ports:
       - "4001:4001"
     env_file:
-      - ./services/games/.env     # injeta variáveis de ambiente do arquivo
+      - ./services/games/.env  # carrega PORT, JWT_ISSUER e outras vars do .env local
+    environment:
+      # Sobrescreve as vars que usam hostnames Docker (não localhost)
+      DATABASE_URL: postgresql://admin:admin@postgres:5432/games?schema=public
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      JWT_JWKS_URI: http://keycloak:8080/realms/crash-game/protocol/openid-connect/certs
     depends_on:
       postgres:
-        condition: service_healthy  # só sobe depois que o healthcheck do postgres passar
+        condition: service_healthy # só sobe depois que o healthcheck do postgres passar
+      rabbitmq:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
 
 volumes:
-  postgres_data:    # volume nomeado: persiste dados entre reinicializações
+  postgres_data: # volume nomeado: persiste dados entre reinicializações
   rabbitmq_data:
 ```
 
+**Por que `env_file` e `environment` juntos?**
+O `env_file` carrega variáveis do `.env` local (ex: `PORT=4001`, `JWT_ISSUER`). O bloco `environment` sobrescreve apenas as que precisam de hostnames Docker — dentro de um container, `localhost` não resolve para outros serviços; é preciso usar o nome do serviço como hostname (`postgres`, `rabbitmq`, `keycloak`).
+
 ### Conceitos-chave
 
-| Conceito | O que faz |
-|---|---|
-| `ports: "5432:5432"` | Expõe a porta do container no host. Formato `HOST:CONTAINER` |
-| `volumes:` | Monta arquivos/pastas ou cria volumes persistentes |
-| `depends_on: condition: service_healthy` | Aguarda o healthcheck de outro serviço antes de subir |
-| `env_file:` | Injeta um arquivo `.env` inteiro como variáveis de ambiente |
-| `healthcheck:` | Comando que o Docker executa periodicamente para saber se o serviço está saudável |
+| Conceito                                 | O que faz                                                                         |
+| ---------------------------------------- | --------------------------------------------------------------------------------- |
+| `ports: "5432:5432"`                     | Expõe a porta do container no host. Formato `HOST:CONTAINER`                      |
+| `volumes:`                               | Monta arquivos/pastas ou cria volumes persistentes                                |
+| `depends_on: condition: service_healthy` | Aguarda o healthcheck de outro serviço antes de subir                             |
+| `env_file:`                              | Injeta um arquivo `.env` inteiro como variáveis de ambiente                       |
+| `healthcheck:`                           | Comando que o Docker executa periodicamente para saber se o serviço está saudável |
 
 ### Volumes: nomeados vs bind mounts
 

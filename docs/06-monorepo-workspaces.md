@@ -4,7 +4,7 @@
 
 Um monorepo coloca múltiplos projetos (serviços, pacotes, frontend) em um único repositório git. A alternativa é um repositório por projeto (polyrepo).
 
-```
+```text
 fullstack-challenge/          ← um único git repo
   services/
     games/                    ← serviço NestJS
@@ -17,6 +17,7 @@ fullstack-challenge/          ← um único git repo
 ```
 
 Vantagens:
+
 - Compartilhar código sem publicar pacotes no npm
 - Um único `bun install` instala tudo
 - Mudanças em tipos compartilhados são imediatamente visíveis para todos os consumidores
@@ -34,9 +35,9 @@ O `package.json` raiz declara os workspaces:
   "name": "crash-game",
   "private": true,
   "workspaces": [
-    "services/*",      // todos os pacotes dentro de services/
-    "packages/*",      // todos os pacotes dentro de packages/
-    "frontend"         // o frontend diretamente
+    "services/*", // todos os pacotes dentro de services/
+    "packages/*", // todos os pacotes dentro de packages/
+    "frontend" // o frontend diretamente
   ]
 }
 ```
@@ -84,7 +85,7 @@ Os consumidores referenciam por nome com `workspace:*`:
 // services/games/package.json
 {
   "dependencies": {
-    "@crash/events": "workspace:*"    // ← referencia o package local
+    "@crash/events": "workspace:*" // ← referencia o package local
   },
   "devDependencies": {
     "@crash/eslint-config": "workspace:*"
@@ -100,7 +101,7 @@ Os consumidores referenciam por nome com `workspace:*`:
 
 Sem esse package, os tipos dos eventos RabbitMQ ficavam duplicados em `games` e `wallets`:
 
-```
+```text
 services/games/src/infrastructure/messaging/contracts/commands.ts   ← cópia
 services/wallets/src/infrastructure/messaging/contracts/commands.ts ← cópia
 ```
@@ -145,7 +146,7 @@ Os arquivos de contrato nos serviços viram re-exports:
 export {
   type DebitWalletCommand,
   type CreditWalletCommand,
-  WALLET_COMMANDS
+  WALLET_COMMANDS,
 } from "@crash/events";
 ```
 
@@ -157,7 +158,7 @@ O restante do código (`wallet-client.service.ts`, testes, etc.) continua import
 
 Centraliza as regras de ESLint e Prettier para não repetir as mesmas dependências em cada workspace.
 
-```
+```text
 packages/eslint-config/
   node.mjs       ← config para serviços Node/NestJS
   react.mjs      ← config para o frontend React
@@ -171,7 +172,7 @@ import NodeConfig from "@prdev-solutions/eslint-config/node.mjs";
 
 export default [
   ...NodeConfig,
-  { ignores: ["./**/generated/*"] }   // ignora código gerado pelo Prisma
+  { ignores: ["./**/generated/*"] }, // ignora código gerado pelo Prisma
 ];
 ```
 
@@ -179,10 +180,7 @@ export default [
 // packages/eslint-config/react.mjs
 import ReactConfig from "@prdev-solutions/eslint-config/react.mjs";
 
-export default [
-  ...ReactConfig,
-  { ignores: ["dist/**"] }
-];
+export default [...ReactConfig, { ignores: ["dist/**"] }];
 ```
 
 ```javascript
@@ -220,7 +218,7 @@ Resultado: `@prdev-solutions/eslint-config` instalado **uma vez** em `packages/e
 
 Quando `services/games` importa `@crash/events`:
 
-```
+```text
 1. Bun procura em services/games/node_modules/@crash/events  → não existe
 2. Sobe um nível: services/node_modules/@crash/events        → não existe
 3. Sobe: node_modules/@crash/events                          → symlink para packages/events/
@@ -239,7 +237,7 @@ O campo `exports` define quais caminhos são acessíveis de fora do package:
 ```json
 {
   "exports": {
-    ".": "./src/index.ts",          // import "@crash/events" → index.ts
+    ".": "./src/index.ts", // import "@crash/events" → index.ts
     "./commands": "./src/commands.ts" // import "@crash/events/commands" → commands.ts
   }
 }
@@ -249,11 +247,49 @@ Paths não listados no `exports` são privados — qualquer tentativa de import�
 
 ---
 
+## Workspaces e Docker — problema crítico
+
+O `bun install` com `workspace:*` precisa da **estrutura completa do monorepo** para resolver os symlinks. No Docker, o build context padrão de um serviço seria sua própria pasta (`./services/games`) — mas isso exclui `packages/` e os outros `package.json`, fazendo o `bun install` falhar com "package not found".
+
+**A solução tem duas partes:**
+
+**1. Build context = raiz do monorepo**
+
+```yaml
+# docker-compose.yml
+games:
+  build:
+    context: .                              # raiz, não ./services/games
+    dockerfile: services/games/Dockerfile
+```
+
+**2. Copiar todos os `package.json` antes do `bun install`**
+
+```dockerfile
+# O bun install precisa ver todos os manifests para resolver workspace:*
+COPY package.json bun.lock ./
+COPY packages/events/package.json     ./packages/events/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY services/games/package.json      ./services/games/
+COPY services/wallets/package.json    ./services/wallets/
+COPY frontend/package.json            ./frontend/
+RUN bun install
+
+# Só depois copiar o código-fonte
+COPY packages/events/src ./packages/events/src
+COPY services/games/src  ./services/games/src
+# ...
+```
+
+Essa ordem preserva o cache do Docker: o `bun install` só roda novamente se algum `package.json` mudar, não a cada mudança de código.
+
+---
+
 ## Para projetos próprios
 
 Estrutura mínima para um monorepo com Bun:
 
-```
+```text
 meu-projeto/
   package.json          ← workspaces: ["apps/*", "packages/*"]
   apps/

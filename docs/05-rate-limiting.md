@@ -25,16 +25,16 @@ O Throttler armazena um contador por cliente (identificado por IP por padrão) e
 // src/app.module.ts
 ThrottlerModule.forRoot([
   {
-    name: "default",   // nome usado para referenciar no @Throttle()
-    ttl: 60_000,       // janela de 60 segundos (em ms)
-    limit: 60          // máximo de 60 requests por janela
+    name: "default", // nome usado para referenciar no @Throttle()
+    ttl: 60_000, // janela de 60 segundos (em ms)
+    limit: 60, // máximo de 60 requests por janela
   },
   {
     name: "bet",
     ttl: 60_000,
-    limit: 5           // endpoints de aposta: máximo 5 por minuto
-  }
-])
+    limit: 5, // endpoints de aposta: máximo 5 por minuto
+  },
+]);
 ```
 
 Múltiplos throttlers permitem políticas diferentes por endpoint — um throttler global permissivo e um restritivo para ações sensíveis.
@@ -46,9 +46,9 @@ Múltiplos throttlers permitem políticas diferentes por endpoint — um throttl
 providers: [
   {
     provide: APP_GUARD,
-    useClass: ThrottlerGuard   // aplica em todos os endpoints por padrão
-  }
-]
+    useClass: ThrottlerGuard, // aplica em todos os endpoints por padrão
+  },
+];
 ```
 
 ### 3. Sobrescrever por endpoint
@@ -93,10 +93,10 @@ Retry-After: 60
 
 ## Raciocínio por trás dos limites deste projeto
 
-| Throttler | Limite | Raciocínio |
-|---|---|---|
-| `default` | 60/min | ~1 req/seg para navegação normal |
-| `bet` | 5/min | Ação financeira — limitada deliberadamente para prevenir abuso |
+| Throttler | Limite | Raciocínio                                                     |
+| --------- | ------ | -------------------------------------------------------------- |
+| `default` | 60/min | ~1 req/seg para navegação normal                               |
+| `bet`     | 5/min  | Ação financeira — limitada deliberadamente para prevenir abuso |
 
 Para endpoints sensíveis como apostas, o limite baixo não é só proteção técnica — é uma regra de negócio. Você não quer que um usuário consiga colocar 50 apostas programaticamente em poucos segundos.
 
@@ -148,6 +148,7 @@ async health() { ... }
 ```
 
 Instale com:
+
 ```bash
 bun add @nestjs/throttler
 ```

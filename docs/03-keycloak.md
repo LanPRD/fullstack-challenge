@@ -6,7 +6,7 @@ Keycloak é um servidor de identidade open-source. Ele gerencia usuários, auten
 
 A ideia central: **você terceiriza a autenticação para o Keycloak**. Seus serviços não armazenam senhas, não gerenciam sessões, não fazem hash de credenciais. Eles só validam o token JWT que o Keycloak emitiu.
 
-```
+```text
 Browser → Keycloak (login) → token JWT
 Browser → API (token no header) → API valida token com Keycloak
 ```
@@ -15,13 +15,13 @@ Browser → API (token no header) → API valida token com Keycloak
 
 ## Conceitos fundamentais
 
-| Conceito | O que é |
-|---|---|
-| **Realm** | Namespace isolado. Um realm tem seus próprios usuários, clientes e configurações. |
-| **Client** | Representa uma aplicação que usa o Keycloak (o frontend, uma API). |
-| **Public client** | Client sem segredo — adequado para SPAs, pois o código é exposto no browser. |
-| **PKCE** | Extensão de segurança para public clients. Gera um desafio criptográfico para trocar o código pelo token. |
-| **JWKS** | JSON Web Key Set — endpoint público com as chaves públicas do Keycloak para verificar tokens. |
+| Conceito          | O que é                                                                                                   |
+| ----------------- | --------------------------------------------------------------------------------------------------------- |
+| **Realm**         | Namespace isolado. Um realm tem seus próprios usuários, clientes e configurações.                         |
+| **Client**        | Representa uma aplicação que usa o Keycloak (o frontend, uma API).                                        |
+| **Public client** | Client sem segredo — adequado para SPAs, pois o código é exposto no browser.                              |
+| **PKCE**          | Extensão de segurança para public clients. Gera um desafio criptográfico para trocar o código pelo token. |
+| **JWKS**          | JSON Web Key Set — endpoint público com as chaves públicas do Keycloak para verificar tokens.             |
 
 ---
 
@@ -33,22 +33,16 @@ Browser → API (token no header) → API valida token com Keycloak
 {
   "realm": "crash-game",
   "enabled": true,
-  "accessTokenLifespan": 3600,        // token expira em 1 hora
+  "accessTokenLifespan": 3600, // token expira em 1 hora
   "clients": [
     {
       "clientId": "crash-game-client",
-      "publicClient": true,            // SPA: sem client_secret
-      "standardFlowEnabled": true,     // fluxo Authorization Code
-      "redirectUris": [
-        "http://localhost:3000/*",
-        "http://localhost:5173/*"
-      ],
-      "webOrigins": [
-        "http://localhost:3000",
-        "http://localhost:5173"
-      ],
+      "publicClient": true, // SPA: sem client_secret
+      "standardFlowEnabled": true, // fluxo Authorization Code
+      "redirectUris": ["http://localhost:3000/*", "http://localhost:5173/*"],
+      "webOrigins": ["http://localhost:3000", "http://localhost:5173"],
       "attributes": {
-        "pkce.code.challenge.method": "S256"   // exige PKCE com SHA-256
+        "pkce.code.challenge.method": "S256" // exige PKCE com SHA-256
       }
     }
   ],
@@ -76,7 +70,7 @@ keycloak:
 
 ## Fluxo de autenticação (Authorization Code + PKCE)
 
-```
+```text
 1. Usuário clica em "Entrar"
 2. Frontend redireciona para:
    http://localhost:8080/realms/crash-game/protocol/openid-connect/auth
@@ -109,7 +103,7 @@ import Keycloak from "keycloak-js";
 const keycloak = new Keycloak({
   url: "http://localhost:8080",
   realm: "crash-game",
-  clientId: "crash-game-client"
+  clientId: "crash-game-client",
 });
 
 export default keycloak;
@@ -118,9 +112,9 @@ export default keycloak;
 ```typescript
 // src/App.tsx — inicializa na montagem
 const authenticated = await keycloak.init({
-  onLoad: "check-sso",          // verifica sessão existente sem redirecionar
-  pkceMethod: "S256",           // exige PKCE
-  silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`
+  onLoad: "check-sso", // verifica sessão existente sem redirecionar
+  pkceMethod: "S256", // exige PKCE
+  silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`,
 });
 
 // Renova o token antes de expirar
@@ -133,7 +127,13 @@ O `check-sso` silencioso usa um iframe apontando para `/silent-check-sso.html` �
 
 ```html
 <!-- public/silent-check-sso.html -->
-<html><body><script>parent.postMessage(location.href, location.origin)</script></body></html>
+<html>
+  <body>
+    <script>
+      parent.postMessage(location.href, location.origin);
+    </script>
+  </body>
+</html>
 ```
 
 ---
@@ -149,23 +149,23 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(envService: EnvService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      issuer: envService.get("JWT_ISSUER"),   // http://localhost:8080/realms/crash-game
-      algorithms: ["RS256"],                  // Keycloak usa RSA
+      issuer: envService.get("JWT_ISSUER"), // http://localhost:8080/realms/crash-game
+      algorithms: ["RS256"], // Keycloak usa RSA
       secretOrKeyProvider: passportJwtSecret({
         jwksUri: envService.get("JWT_JWKS_URI"),
         // http://localhost:8080/realms/crash-game/protocol/openid-connect/certs
-        cache: true,                 // baixa as chaves uma vez
-        rateLimit: true,             // evita flood no Keycloak
-        jwksRequestsPerMinute: 5
-      })
+        cache: true, // baixa as chaves uma vez
+        rateLimit: true, // evita flood no Keycloak
+        jwksRequestsPerMinute: 5,
+      }),
     });
   }
 
   validate(payload: JwtPayload): AuthUser {
     return {
-      id: payload.sub,              // ID único do usuário (UUID)
+      id: payload.sub, // ID único do usuário (UUID)
       email: payload.email,
-      username: payload.preferred_username
+      username: payload.preferred_username,
     };
   }
 }
@@ -203,12 +203,41 @@ async placeBet(
 ## Variáveis de ambiente necessárias
 
 ```bash
-KEYCLOAK_URL=http://localhost:8080
-KEYCLOAK_REALM=crash-game
-KEYCLOAK_CLIENT_ID=crash-game-client
+# Desenvolvimento local (fora do Docker)
 JWT_JWKS_URI=http://localhost:8080/realms/crash-game/protocol/openid-connect/certs
 JWT_ISSUER=http://localhost:8080/realms/crash-game
 ```
+
+**Dentro do Docker, o hostname muda.** O `JWT_JWKS_URI` precisa usar o nome do container como hostname — `localhost` dentro de um container aponta para o próprio container, não para o Keycloak. Por isso o `docker-compose.yml` sobrescreve essa variável via `environment`:
+
+```yaml
+# docker-compose.yml
+games:
+  env_file:
+    - ./services/games/.env       # JWT_ISSUER=http://localhost:8080/... (correto: é o iss do token)
+  environment:
+    JWT_JWKS_URI: http://keycloak:8080/realms/crash-game/protocol/openid-connect/certs
+    #                  ↑ hostname do container, não localhost
+```
+
+O `JWT_ISSUER` permanece com `localhost` porque o Keycloak emite tokens com `iss = URL pública (localhost:8080)`. A validação do `iss` no backend precisa bater com o que está dentro do token — e o token foi gerado pelo browser apontando para `localhost`.
+
+---
+
+## Healthcheck no Docker
+
+O Keycloak 26+ expõe o endpoint de health na **porta de management (9000)**, não na porta principal (8080). O healthcheck no `docker-compose.yml` usa um truque de TCP puro para verificar isso sem depender de `curl` ou `wget` (não disponíveis na imagem):
+
+```yaml
+healthcheck:
+  test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 2>/dev/null && echo ok || exit 1"]
+  interval: 10s
+  timeout: 10s
+  retries: 20
+  start_period: 60s  # Keycloak demora para inicializar; aguarda 60s antes de checar
+```
+
+`exec 3<>/dev/tcp/localhost/9000` abre uma conexão TCP na porta 9000 — se funcionar, o serviço está respondendo.
 
 ---
 
