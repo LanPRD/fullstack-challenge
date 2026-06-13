@@ -1,4 +1,5 @@
 import { UniqueEntityId, Wallet } from "@/domain/entities";
+import { InsufficientFundsError } from "@/domain/errors";
 import { Money } from "@/domain/value-objects";
 import { describe, expect, it } from "bun:test";
 
@@ -28,8 +29,14 @@ describe("Wallet", () => {
     });
 
     it("should generate a unique id", () => {
-      const w1 = Wallet.create({ userId: new UniqueEntityId(), balance: createMoney(0n) });
-      const w2 = Wallet.create({ userId: new UniqueEntityId(), balance: createMoney(0n) });
+      const w1 = Wallet.create({
+        userId: new UniqueEntityId(),
+        balance: createMoney(0n)
+      });
+      const w2 = Wallet.create({
+        userId: new UniqueEntityId(),
+        balance: createMoney(0n)
+      });
 
       expect(w1.id.toString()).not.toBe(w2.id.toString());
     });
@@ -106,7 +113,7 @@ describe("Wallet", () => {
       const result = wallet.debit(createMoney(2_000n));
 
       expect(result.isLeft()).toBe(true);
-      expect(result.value).toBeInstanceOf(Error);
+      expect(result.value).toBeInstanceOf(InsufficientFundsError);
     });
 
     it("should not change balance when debit fails", () => {
@@ -128,6 +135,77 @@ describe("Wallet", () => {
 
       const result = wallet.debit(createMoney(1n));
 
+      expect(result.isLeft()).toBe(true);
+    });
+  });
+
+  describe("updatedAt", () => {
+    it("should update updatedAt when crediting", async () => {
+      const wallet = Wallet.create({
+        userId: new UniqueEntityId(),
+        balance: createMoney(0n)
+      });
+      const before = wallet.updatedAt;
+
+      await new Promise(resolve => setTimeout(resolve, 5));
+      wallet.credit(createMoney(100n));
+
+      expect(wallet.updatedAt.getTime()).toBeGreaterThan(before.getTime());
+    });
+
+    it("should update updatedAt when debiting successfully", async () => {
+      const wallet = Wallet.create({
+        userId: new UniqueEntityId(),
+        balance: createMoney(1_000n)
+      });
+      const before = wallet.updatedAt;
+
+      await new Promise(resolve => setTimeout(resolve, 5));
+      wallet.debit(createMoney(500n));
+
+      expect(wallet.updatedAt.getTime()).toBeGreaterThan(before.getTime());
+    });
+
+    it("should NOT update updatedAt when debit fails", async () => {
+      const wallet = Wallet.create({
+        userId: new UniqueEntityId(),
+        balance: createMoney(100n)
+      });
+      const before = wallet.updatedAt;
+
+      await new Promise(resolve => setTimeout(resolve, 5));
+      wallet.debit(createMoney(200n));
+
+      expect(wallet.updatedAt.getTime()).toBe(before.getTime());
+    });
+  });
+
+  describe("monetary precision (BigInt)", () => {
+    it("should handle large amounts without precision loss", () => {
+      const largeCents = 999_999_999_999n;
+      const wallet = Wallet.create({
+        userId: new UniqueEntityId(),
+        balance: createMoney(largeCents)
+      });
+
+      expect(wallet.balance.toCents()).toBe(largeCents);
+    });
+
+    it("should preserve cent-level precision across credit and debit", () => {
+      const wallet = Wallet.create({
+        userId: new UniqueEntityId(),
+        balance: createMoney(0n)
+      });
+
+      wallet.credit(createMoney(1n));
+      wallet.credit(createMoney(1n));
+      wallet.credit(createMoney(1n));
+
+      expect(wallet.balance.toCents()).toBe(3n);
+    });
+
+    it("Money.fromCents should reject negative amounts", () => {
+      const result = Money.fromCents(-1n);
       expect(result.isLeft()).toBe(true);
     });
   });
