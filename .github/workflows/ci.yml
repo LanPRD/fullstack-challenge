@@ -67,6 +67,10 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Generate Prisma client
+        run: bunx prisma generate
+        working-directory: services/${{ matrix.service }}
+
       - name: Typecheck
         run: bun run typecheck
         working-directory: services/${{ matrix.service }}
