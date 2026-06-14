@@ -105,7 +105,7 @@ describe("Rounds E2E", () => {
     });
 
     test("returns current round in BETTING status", async () => {
-      const round = RoundFactory.build();
+      const round = RoundFactory.build({}, new UniqueEntityId("round-betting"));
 
       await prisma.round.create({
         data: PrismaRoundMapper.toPrisma(round)
@@ -117,16 +117,18 @@ describe("Rounds E2E", () => {
 
       expect(response.body.id).toBe("round-betting");
       expect(response.body.status).toBe("BETTING");
-      expect(response.body.serverSeedHash).toBe("hash-betting");
+      expect(response.body.serverSeedHash).toBe(
+        round.provablyFair.serverSeedHash
+      );
       // Server seed should not be exposed for active round
       expect(response.body.serverSeed).toBeUndefined();
     });
 
     test("returns current round in RUNNING status with bets", async () => {
-      const round = RoundFactory.build({
-        status: RoundStatus.RUNNING,
-        startedAt: new Date()
-      });
+      const round = RoundFactory.build(
+        { status: RoundStatus.RUNNING, startedAt: new Date() },
+        new UniqueEntityId("round-running")
+      );
 
       const bet = BetFactory.build({}, undefined, round.id);
 
@@ -161,7 +163,7 @@ describe("Rounds E2E", () => {
     });
 
     test("returns 400 for non-crashed round", async () => {
-      const round = RoundFactory.build();
+      const round = RoundFactory.build({}, new UniqueEntityId("round-betting"));
 
       await prisma.round.create({
         data: PrismaRoundMapper.toPrisma(round)
