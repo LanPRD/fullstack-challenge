@@ -6,7 +6,7 @@ import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { AuthModule } from "./infrastructure/auth";
 import { EnvModule } from "./infrastructure/env/env.module";
 import { GameEngineModule } from "./infrastructure/game-engine/game-engine.module";
-import { MessagingModule } from "./infrastructure/messaging";
+import { MessagingModule } from "./infrastructure/messaging/messaging.module";
 import {
   BetController,
   BetsController,
