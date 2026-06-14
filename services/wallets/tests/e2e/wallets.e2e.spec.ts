@@ -6,7 +6,7 @@ describe("Wallets E2E", () => {
   describe("POST /wallets", () => {
     test("creates a wallet for authenticated user", async () => {
       const response = await request(app.getHttpServer())
-        .post("/wallets")
+        .post("/")
         .expect(201);
 
       expect(response.body.userId).toBe(TEST_USER.id);
@@ -16,17 +16,17 @@ describe("Wallets E2E", () => {
     });
 
     test("returns 409 when wallet already exists", async () => {
-      await request(app.getHttpServer()).post("/wallets").expect(201);
+      await request(app.getHttpServer()).post("/").expect(201);
 
       const response = await request(app.getHttpServer())
-        .post("/wallets")
+        .post("/")
         .expect(409);
 
       expect(response.body.message).toContain("already exists");
     });
 
     test("persists wallet with zero balance in database", async () => {
-      await request(app.getHttpServer()).post("/wallets").expect(201);
+      await request(app.getHttpServer()).post("/").expect(201);
 
       const wallet = await prisma.wallet.findUnique({
         where: { userId: TEST_USER.id }
@@ -50,7 +50,7 @@ describe("Wallets E2E", () => {
       });
 
       const response = await request(app.getHttpServer())
-        .get("/wallets/me")
+        .get("/me")
         .expect(200);
 
       expect(response.body.userId).toBe(TEST_USER.id);
@@ -59,7 +59,7 @@ describe("Wallets E2E", () => {
 
     test("returns 404 when wallet does not exist", async () => {
       const response = await request(app.getHttpServer())
-        .get("/wallets/me")
+        .get("/me")
         .expect(404);
 
       expect(response.body.message).toBe("Wallet not found");
@@ -76,17 +76,17 @@ describe("Wallets E2E", () => {
       });
 
       const response = await request(app.getHttpServer())
-        .get("/wallets/me")
+        .get("/me")
         .expect(200);
 
       expect(response.body.balance).toBe(1);
     });
 
     test("creates then retrieves wallet with consistent data", async () => {
-      await request(app.getHttpServer()).post("/wallets").expect(201);
+      await request(app.getHttpServer()).post("/").expect(201);
 
       const response = await request(app.getHttpServer())
-        .get("/wallets/me")
+        .get("/me")
         .expect(200);
 
       expect(response.body.userId).toBe(TEST_USER.id);
@@ -97,7 +97,7 @@ describe("Wallets E2E", () => {
   describe("GET /wallets/health", () => {
     test("returns ok without authentication", async () => {
       const response = await request(app.getHttpServer())
-        .get("/wallets/health")
+        .get("/health")
         .expect(200);
 
       expect(response.body.status).toBe("ok");
