@@ -107,7 +107,7 @@ export class Bet extends Entity<BetProps> {
         payout: null,
         cashoutMultiplier: null,
         ...props,
-        createdAt: new Date(),
+        createdAt: props.createdAt ?? new Date(),
         updatedAt: new Date()
       },
       id
