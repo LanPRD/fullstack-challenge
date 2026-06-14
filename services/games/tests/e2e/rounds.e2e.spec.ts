@@ -130,11 +130,12 @@ describe("Rounds E2E", () => {
 
       const bet = BetFactory.build({}, undefined, round.id);
 
+      const { roundId: _roundId, ...betData } = PrismaBetMapper.toPrisma(bet);
       await prisma.round.create({
         data: {
           ...PrismaRoundMapper.toPrisma(round),
           bets: {
-            create: [PrismaBetMapper.toPrisma(bet)]
+            create: [betData]
           }
         }
       });

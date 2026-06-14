@@ -52,15 +52,16 @@ describe("Bets History E2E", () => {
         new UniqueEntityId("bet-2")
       );
 
+      const { roundId: _roundId1, ...userBetData } =
+        PrismaBetMapper.toPrisma(userBet);
+      const { roundId: _roundId2, ...otherUserBetData } =
+        PrismaBetMapper.toPrisma(otherUserBet);
       await prisma.round.create({
         data: {
           ...PrismaRoundMapper.toPrisma(round),
           bets: {
             createMany: {
-              data: [
-                PrismaBetMapper.toPrisma(userBet),
-                PrismaBetMapper.toPrisma(otherUserBet)
-              ]
+              data: [userBetData, otherUserBetData]
             }
           }
         }
@@ -119,20 +120,24 @@ describe("Bets History E2E", () => {
         new UniqueEntityId("bet-new")
       );
 
+      const { roundId: _roundId3, ...oldBetData } =
+        PrismaBetMapper.toPrisma(oldBet);
       await prisma.round.create({
         data: {
           ...PrismaRoundMapper.toPrisma(round1),
           bets: {
-            create: PrismaBetMapper.toPrisma(oldBet)
+            create: oldBetData
           }
         }
       });
 
+      const { roundId: _roundId4, ...newBetData } =
+        PrismaBetMapper.toPrisma(newBet);
       await prisma.round.create({
         data: {
           ...PrismaRoundMapper.toPrisma(round2),
           bets: {
-            create: PrismaBetMapper.toPrisma(newBet)
+            create: newBetData
           }
         }
       });
@@ -168,11 +173,12 @@ describe("Bets History E2E", () => {
           new UniqueEntityId(`bet-${i}`)
         );
 
+        const { roundId: _roundId, ...betData } = PrismaBetMapper.toPrisma(bet);
         await prisma.round.create({
           data: {
             ...PrismaRoundMapper.toPrisma(round),
             bets: {
-              create: PrismaBetMapper.toPrisma(bet)
+              create: betData
             }
           }
         });

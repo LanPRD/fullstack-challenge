@@ -6,7 +6,7 @@
     "dev": "bun run --watch src/main.ts",
     "start": "bun run src/main.ts",
     "test": "bun test tests/unit",
-    "test:e2e": "bun test tests/e2e",
+    "test:e2e": "bun test tests/e2e/bet.e2e.spec.ts && bun test tests/e2e/bets.e2e.spec.ts && bun test tests/e2e/rounds.e2e.spec.ts",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "prettier:check": "bunx prettier --check .",
     "prettier:fix": "bunx prettier --write .",

@@ -114,11 +114,13 @@ describe("Bet E2E", () => {
         new UniqueEntityId("existing-bet")
       );
 
+      const { roundId: _roundId, ...existingBetData } =
+        PrismaBetMapper.toPrisma(existingBet);
       await prisma.round.create({
         data: {
           ...PrismaRoundMapper.toPrisma(round),
           bets: {
-            create: PrismaBetMapper.toPrisma(existingBet)
+            create: existingBetData
           }
         }
       });
