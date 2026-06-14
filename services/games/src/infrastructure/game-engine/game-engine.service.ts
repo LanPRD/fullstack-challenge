@@ -41,6 +41,7 @@ export class GameEngineService implements OnModuleInit, OnModuleDestroy {
 
   private _bettingTimeout: Timer | null = null;
   private _tickInterval: Timer | null = null;
+  private _restartTimeout: Timer | null = null;
 
   constructor(
     private readonly createRoundUseCase: CreateRoundUseCase,
@@ -191,7 +192,7 @@ export class GameEngineService implements OnModuleInit, OnModuleDestroy {
       `Round ${round.id.toString()} crashed at ${round.crashPoint}x`
     );
 
-    setTimeout(() => this.startNewRound(), 3000);
+    this._restartTimeout = setTimeout(() => this.startNewRound(), 3000);
   }
 
   private emit(event: string, payload: Record<string, unknown>): void {
@@ -207,6 +208,11 @@ export class GameEngineService implements OnModuleInit, OnModuleDestroy {
     if (this._tickInterval) {
       clearInterval(this._tickInterval);
       this._tickInterval = null;
+    }
+
+    if (this._restartTimeout) {
+      clearTimeout(this._restartTimeout);
+      this._restartTimeout = null;
     }
   }
 

@@ -5,7 +5,7 @@ import {
 } from "@/application/use-cases/round";
 import { GameEngineService, GamePhase } from "@/infrastructure/game-engine";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { InMemoryRoundRepository } from "../../../repositories";
 
 describe("GameEngineService", () => {
@@ -16,6 +16,10 @@ describe("GameEngineService", () => {
   let crashRoundUseCase: CrashRoundUseCase;
   let eventEmitter: EventEmitter2;
   let emittedEvents: { event: string; payload: unknown }[];
+
+  afterEach(() => {
+    sut.onModuleDestroy();
+  });
 
   beforeEach(() => {
     roundRepository = new InMemoryRoundRepository();
