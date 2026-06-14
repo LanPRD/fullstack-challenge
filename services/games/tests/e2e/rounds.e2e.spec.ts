@@ -149,7 +149,7 @@ describe("Rounds E2E", () => {
       expect(response.body.id).toBe("round-running");
       expect(response.body.status).toBe("RUNNING");
       expect(response.body.bets).toHaveLength(1);
-      expect(response.body.bets[0].amount).toBe(10); // 1000 cents = $10.00
+      expect(response.body.bets[0].amount).toBe(100); // 10000 cents = $100.00
     });
   });
 
