@@ -5,9 +5,7 @@ import { app, prisma, TEST_USER } from "./setup-e2e";
 describe("Wallets E2E", () => {
   describe("POST /wallets", () => {
     test("creates a wallet for authenticated user", async () => {
-      const response = await request(app.getHttpServer())
-        .post("/")
-        .expect(201);
+      const response = await request(app.getHttpServer()).post("/").expect(201);
 
       expect(response.body.userId).toBe(TEST_USER.id);
       expect(response.body.balance).toBe(0);
@@ -18,9 +16,7 @@ describe("Wallets E2E", () => {
     test("returns 409 when wallet already exists", async () => {
       await request(app.getHttpServer()).post("/").expect(201);
 
-      const response = await request(app.getHttpServer())
-        .post("/")
-        .expect(409);
+      const response = await request(app.getHttpServer()).post("/").expect(409);
 
       expect(response.body.message).toContain("already exists");
     });
